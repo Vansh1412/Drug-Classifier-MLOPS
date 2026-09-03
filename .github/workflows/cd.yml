@@ -9,7 +9,6 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    # Only deploy when CI passes, not on failure
     if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
     steps:
       - uses: actions/checkout@v4
@@ -19,14 +18,48 @@ jobs:
         with:
           python-version: "3.10"
 
-      - name: Install Hugging Face CLI
-        run: pip install -U "huggingface_hub[cli]"
+      - name: Install Hugging Face Hub
+        run: pip install --upgrade "huggingface_hub>=0.20.0"
 
       - name: Deploy to Hugging Face Spaces
         env:
-          HF: ${{ secrets.HF }}
+          HF_TOKEN: ${{ secrets.HF }}
+          HF_SPACE: ${{ secrets.HF_SPACE }}
         run: |
-          huggingface-cli login --token $HF --add-to-git-credential
-          huggingface-cli upload ${{ secrets.HF_SPACE }} ./App --repo-type=space --commit-message="Sync App files"
-          huggingface-cli upload ${{ secrets.HF_SPACE }} ./Model /Model --repo-type=space --commit-message="Sync Model"
-          huggingface-cli upload ${{ secrets.HF_SPACE }} ./Results /Metrics --repo-type=space --commit-message="Sync Results"
+          if [ -z "$HF_TOKEN" ] || [ -z "$HF_SPACE" ]; then
+            echo "::notice::Hugging Face secrets (HF / HF_SPACE) not configured. Skipping deployment step gracefully."
+            exit 0
+          fi
+
+          python - << 'EOF'
+          import os
+          from huggingface_hub import HfApi
+
+          token = os.environ["HF_TOKEN"]
+          space_id = os.environ["HF_SPACE"]
+
+          api = HfApi(token=token)
+          print(f"Deploying to Hugging Face Space: {space_id}...")
+
+          api.upload_folder(
+              folder_path="./App",
+              repo_id=space_id,
+              repo_type="space",
+              commit_message="Sync App files"
+          )
+          api.upload_folder(
+              folder_path="./Model",
+              path_in_repo="Model",
+              repo_id=space_id,
+              repo_type="space",
+              commit_message="Sync Model"
+          )
+          api.upload_folder(
+              folder_path="./Results",
+              path_in_repo="Metrics",
+              repo_id=space_id,
+              repo_type="space",
+              commit_message="Sync Metrics"
+          )
+          print("Successfully deployed to Hugging Face Spaces!")
+          EOF
