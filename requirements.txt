@@ -1,0 +1,11 @@
+pandas
+scikit-learn
+numpy
+matplotlib
+skops
+black
+pytest
+httpx
+fastapi
+uvicorn[standard]
+pydantic
