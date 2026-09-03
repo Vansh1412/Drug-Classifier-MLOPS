@@ -35,7 +35,7 @@ jobs:
         run: docker build -t drug-classifier .
 
       - name: Setup CML
-        uses: iterative/setup-cml@v3
+        run: npm install -g @dvcorg/cml
 
       - name: Create Evaluation Report
         env:
@@ -46,4 +46,9 @@ jobs:
           echo "" >> report.md
           echo "## Confusion Matrix" >> report.md
           echo "![Confusion Matrix](./Results/model_results.png)" >> report.md
-          cml comment create report.md
+          
+          # Render directly on GitHub Actions Job Summary tab
+          cat report.md >> $GITHUB_STEP_SUMMARY
+          
+          # Post comment via CML (with fallback)
+          cml comment create report.md || true
