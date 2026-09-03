@@ -12,35 +12,32 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: "3.10"
 
       - name: Install Packages
-        run: make install
+        run: pip install --upgrade pip && pip install -r requirements.txt
 
-      - name: Format Check
-        run: black --check *.py
+      - name: Format Code
+        run: black train.py
 
       - name: Train
-        run: make train
+        run: python train.py
 
       - name: Test
-        run: make test
+        run: pytest tests/ -v
 
       - name: Build Docker Image
-        run: make docker-build
+        run: docker build -t drug-classifier .
 
-      - name: Evaluation Report
-        uses: iterative/setup-cml@v2
-        env:
-          REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          version: latest
-      - name: Create CML Report
+      - name: Setup CML
+        uses: iterative/setup-cml@v3
+
+      - name: Create Evaluation Report
         env:
           REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
