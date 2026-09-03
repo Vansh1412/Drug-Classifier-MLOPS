@@ -1,27 +1,75 @@
-# CICD-for-Machine-Learning
-[![CI](https://github.com/kingabzpro/CICD-for-Machine-Learning/actions/workflows/ci.yml/badge.svg)](https://github.com/kingabzpro/CICD-for-Machine-Learning/actions/workflows/ci.yml)
-[![Continuous Deployment](https://github.com/kingabzpro/CICD-for-Machine-Learning/actions/workflows/cd.yml/badge.svg)](https://github.com/kingabzpro/CICD-for-Machine-Learning/actions/workflows/cd.yml)
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/kingabzpro/CICD-for-Machine-Learning/blob/main/notebook.ipynb)
+# Drug Classifier MLOps
 
-[![DataCamp](https://img.shields.io/badge/Datacamp-05192D?style=for-the-badge&logo=datacamp&logoColor=65FF8F)](https://www.datacamp.com/tutorial/ci-cd-for-machine-learning) [![Open in Spaces](https://huggingface.co/datasets/huggingface/badges/resolve/main/open-in-hf-spaces-md-dark.svg)](https://huggingface.co/spaces/kingabzpro/Drug-Classification)
+[![CI](https://github.com/Vansh1412/Drug-Classifier-MLOPS/actions/workflows/ci.yml/badge.svg)](https://github.com/Vansh1412/Drug-Classifier-MLOPS/actions/workflows/ci.yml)
+[![CD](https://github.com/Vansh1412/Drug-Classifier-MLOPS/actions/workflows/cd.yml/badge.svg)](https://github.com/Vansh1412/Drug-Classifier-MLOPS/actions/workflows/cd.yml)
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/Vansh1412/Drug-Classifier-MLOPS/blob/main/notebook.ipynb)
 
-Learn how to automate model training, evaluation, versioning, and deployment using GitHub Actions with the easiest MLOps guide available online.
+An end-to-end MLOps project demonstrating automated model training, testing, containerization, and deployment using GitHub Actions CI/CD.
 
 ## Project Description
-In this project, we will be using scikit-learn pipelines to train our random forest algorithm and build a drug classifier. After training, we will automate the evaluation process using CML. Finally, we will build and deploy the web application to Hugging Face Hub. 
 
-From training to evaluation, the entire process will be automated using GitHub actions. All you have to do is push the code to your GitHub repository, and within two minutes, the model will be updated on Hugging Face with the updated app, model, and results.
+This project builds a **Drug Classification** model using a `scikit-learn` Random Forest pipeline trained on patient data (age, sex, blood pressure, cholesterol, Na-to-K ratio). The full lifecycle — from training to deployment — is automated via GitHub Actions.
 
-> **Follow the tutorial:** https://www.datacamp.com/tutorial/ci-cd-for-machine-learning
+**Key Features:**
+- 🤖 **ML Pipeline** — Scikit-learn `RandomForestClassifier` with preprocessing pipeline
+- 🌐 **REST API** — FastAPI server with `POST /predict` and `GET /health` endpoints
+- 🐳 **Docker** — Multi-stage Dockerfile with health checks for containerized deployment
+- ✅ **Automated Testing** — 6 pytest unit tests covering model and API
+- ⚙️ **CI/CD** — GitHub Actions pipeline: train → test → docker build → evaluate → deploy
+- 🐧 **Linux Deploy Script** — `deploy.sh` for zero-downtime container replacement
+
+## Tech Stack
+
+| Category | Tools |
+|---|---|
+| Language | Python |
+| ML | Scikit-learn, Pandas, NumPy, Skops |
+| API | FastAPI, Uvicorn, Pydantic |
+| Testing | pytest, httpx |
+| Containerization | Docker, Docker Compose |
+| CI/CD | GitHub Actions, CML (Iterative) |
+| Deployment | Hugging Face Spaces, Linux |
+
+## API Usage
+
+```bash
+# Health check
+curl http://localhost:8000/health
+
+# Predict drug
+curl -X POST http://localhost:8000/predict \
+  -H "Content-Type: application/json" \
+  -d '{"age": 30, "sex": "M", "blood_pressure": "HIGH", "cholesterol": "NORMAL", "na_to_k_ratio": 15.4}'
+```
+
+## Run Locally
+
+```bash
+# Install dependencies
+make install
+
+# Train model
+make train
+
+# Run tests
+make test
+
+# Start FastAPI server
+make run-api
+
+# Build & run Docker container
+make docker-build
+docker compose up
+```
 
 ## Pipeline
-
 
 ![CICD](./asset/CICD-pipeline.png)
 
 ## Results
-| Model                  | Accuracy | F1 Score |
-|------------------------|----------|----------|
-| RandomForestClassifier | 97.0%    | 94.0%    |
+
+| Model | Accuracy | F1 Score |
+|---|---|---|
+| RandomForestClassifier | 97.0% | 94.0% |
 
 ![CM](./Results/model_results.png)

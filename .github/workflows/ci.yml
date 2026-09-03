@@ -5,30 +5,48 @@ on:
   pull_request:
     branches: [ "main" ]
   workflow_dispatch:
-  
+
 permissions: write-all
+
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: iterative/setup-cml@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+
       - name: Install Packages
         run: make install
-      - name: Format
-        run: make format
+
+      - name: Format Check
+        run: black --check *.py
+
       - name: Train
         run: make train
+
       - name: Test
         run: make test
+
       - name: Build Docker Image
         run: make docker-build
-      - name: Evaluation
+
+      - name: Evaluation Report
+        uses: iterative/setup-cml@v2
         env:
           REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: make eval
-      - name: Update Branch
+        with:
+          version: latest
+      - name: Create CML Report
         env:
-          NAME: ${{ secrets.USER_NAME }}
-          EMAIL: ${{ secrets.USER_EMAIL }}
-        run: make update-branch USER_NAME=$NAME USER_EMAIL=$EMAIL
+          REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "## Model Metrics" > report.md
+          cat ./Results/metrics.txt >> report.md
+          echo "" >> report.md
+          echo "## Confusion Matrix" >> report.md
+          echo "![Confusion Matrix](./Results/model_results.png)" >> report.md
+          cml comment create report.md

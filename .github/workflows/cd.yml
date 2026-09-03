@@ -4,16 +4,29 @@ on:
     workflows: ["Continuous Integration"]
     types:
       - completed
-
   workflow_dispatch:
 
 jobs:
-  build:
+  deploy:
     runs-on: ubuntu-latest
+    # Only deploy when CI passes, not on failure
+    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
     steps:
       - uses: actions/checkout@v3
 
-      - name: Deployment To Hugging Face
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+
+      - name: Install Hugging Face CLI
+        run: pip install -U "huggingface_hub[cli]"
+
+      - name: Deploy to Hugging Face Spaces
         env:
           HF: ${{ secrets.HF }}
-        run: make deploy HF=$HF
+        run: |
+          huggingface-cli login --token $HF --add-to-git-credential
+          huggingface-cli upload ${{ secrets.HF_SPACE }} ./App --repo-type=space --commit-message="Sync App files"
+          huggingface-cli upload ${{ secrets.HF_SPACE }} ./Model /Model --repo-type=space --commit-message="Sync Model"
+          huggingface-cli upload ${{ secrets.HF_SPACE }} ./Results /Metrics --repo-type=space --commit-message="Sync Results"
