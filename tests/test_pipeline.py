@@ -12,10 +12,14 @@ from sklearn.exceptions import InconsistentVersionWarning
 
 warnings.filterwarnings("ignore", category=InconsistentVersionWarning)
 
-# Add project root to path so imports resolve correctly
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+# Project root = one level up from tests/
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
-MODEL_PATH = "./Model/drug_pipeline.skops"
+# Add project root to path so `from api.main import app` works
+sys.path.insert(0, PROJECT_ROOT)
+
+# Absolute path to the model file — works regardless of where pytest is called from
+MODEL_PATH = os.path.join(PROJECT_ROOT, "Model", "drug_pipeline.skops")
 VALID_DRUGS = {"DrugY", "drugA", "drugB", "drugC", "drugX"}
 
 TRUSTED_TYPES = [
@@ -104,11 +108,17 @@ def test_prediction_shape():
 # ─────────────────────────────────────────────
 def test_api_health_endpoint():
     """Assert that the FastAPI /health endpoint returns HTTP 200 with status 'ok'."""
+    import api.main as api_module
     from fastapi.testclient import TestClient
 
-    from api.main import app
+    # Patch the model path to the absolute path before the app loads it
+    api_module.MODEL_PATH = MODEL_PATH
+    api_module.pipeline = None  # force reload
 
-    client = TestClient(app)
+    import skops.io as sio
+    api_module.pipeline = sio.load(MODEL_PATH, trusted=TRUSTED_TYPES)
+
+    client = TestClient(api_module.app)
     response = client.get("/health")
 
     assert response.status_code == 200, (
@@ -123,11 +133,15 @@ def test_api_health_endpoint():
 # ─────────────────────────────────────────────
 def test_api_predict_endpoint():
     """Assert that the FastAPI /predict endpoint returns a valid drug prediction."""
+    import api.main as api_module
     from fastapi.testclient import TestClient
 
-    from api.main import app
+    # Ensure pipeline is loaded with absolute path
+    if api_module.pipeline is None:
+        import skops.io as sio
+        api_module.pipeline = sio.load(MODEL_PATH, trusted=TRUSTED_TYPES)
 
-    client = TestClient(app)
+    client = TestClient(api_module.app)
     payload = {
         "age": 30,
         "sex": "M",

@@ -29,7 +29,11 @@ TRUSTED_TYPES = [
     "numpy.dtype",
 ]
 
-MODEL_PATH = "./Model/drug_pipeline.skops"
+MODEL_PATH = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+    "Model",
+    "drug_pipeline.skops",
+)
 
 try:
     pipeline = sio.load(MODEL_PATH, trusted=TRUSTED_TYPES)
