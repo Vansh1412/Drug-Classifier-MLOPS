@@ -1,0 +1,53 @@
+# =============================================================================
+# MedMLOps-X — Model & Pipeline Configuration
+# =============================================================================
+
+project:
+  name: "medmlops-x"
+  version: "0.1.0"
+  description: "Production Drug Classifier MLOps Platform"
+
+data:
+  data_path: "Data/drug.csv"
+  target_column: "Drug"
+  categorical_features:
+    - "Sex"
+    - "BP"
+    - "Cholesterol"
+  categorical_indices: [1, 2, 3]
+  numerical_features:
+    - "Age"
+    - "Na_to_K"
+  numerical_indices: [0, 4]
+  test_size: 0.3
+  random_state: 125
+
+model:
+  algorithm: "RandomForestClassifier"
+  n_estimators: 10
+  random_state: 125
+  model_path: "Model/drug_pipeline.skops"
+
+security:
+  # Explicit trusted types for secure skops deserialization
+  trusted_types:
+    - "sklearn.pipeline.Pipeline"
+    - "sklearn.preprocessing.OneHotEncoder"
+    - "sklearn.preprocessing.StandardScaler"
+    - "sklearn.compose.ColumnTransformer"
+    - "sklearn.preprocessing.OrdinalEncoder"
+    - "sklearn.impute.SimpleImputer"
+    - "sklearn.tree.DecisionTreeClassifier"
+    - "sklearn.ensemble.RandomForestClassifier"
+    - "numpy.dtype"
+
+evaluation:
+  # ML Quality Gate thresholds
+  min_accuracy: 0.80
+  min_macro_f1: 0.75
+  valid_classes:
+    - "DrugY"
+    - "drugA"
+    - "drugB"
+    - "drugC"
+    - "drugX"
