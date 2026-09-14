@@ -1,0 +1,22 @@
+{
+  "model_name": "xgboost",
+  "model_class": "XGBClassifier",
+  "model_params": {
+    "n_estimators": 100,
+    "seed": 125,
+    "nthread": 1,
+    "eval_metric": "mlogloss",
+    "verbosity": 0
+  },
+  "artifact_path": "Model/drug_pipeline.skops",
+  "training_timestamp": "2026-09-14T15:32:08.002807+00:00",
+  "dataset_path": "Data/drug.csv",
+  "shuffle_random_state": 125,
+  "split_random_state": 125,
+  "accuracy": 1.0,
+  "macro_f1": 1.0,
+  "macro_recall": 1.0,
+  "weighted_f1": 1.0,
+  "cv_macro_f1_mean": 0.9632851540616245,
+  "cv_macro_f1_std": 0.03301845194012449
+}

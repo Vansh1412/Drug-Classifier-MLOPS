@@ -23,17 +23,35 @@ app = FastAPI(
 )
 
 # --- Model Loading ---
-TRUSTED_TYPES = [
-    "sklearn.pipeline.Pipeline",
-    "sklearn.preprocessing.OneHotEncoder",
-    "sklearn.preprocessing.StandardScaler",
-    "sklearn.compose.ColumnTransformer",
-    "sklearn.preprocessing.OrdinalEncoder",
-    "sklearn.impute.SimpleImputer",
-    "sklearn.tree.DecisionTreeClassifier",
-    "sklearn.ensemble.RandomForestClassifier",
-    "numpy.dtype",
-]
+try:
+    from src.config import get_trusted_types, load_config
+    TRUSTED_TYPES = get_trusted_types(load_config())
+except Exception:
+    TRUSTED_TYPES = [
+        "sklearn.pipeline.Pipeline",
+        "sklearn.preprocessing.OneHotEncoder",
+        "sklearn.preprocessing.StandardScaler",
+        "sklearn.compose.ColumnTransformer",
+        "sklearn.preprocessing.OrdinalEncoder",
+        "sklearn.impute.SimpleImputer",
+        "sklearn.tree.DecisionTreeClassifier",
+        "sklearn.tree._classes.DecisionTreeClassifier",
+        "sklearn.ensemble.RandomForestClassifier",
+        "sklearn.ensemble._forest.RandomForestClassifier",
+        "sklearn.ensemble.ExtraTreesClassifier",
+        "sklearn.ensemble._forest.ExtraTreesClassifier",
+        "sklearn.tree.ExtraTreeClassifier",
+        "sklearn.tree._classes.ExtraTreeClassifier",
+        "sklearn.linear_model.LogisticRegression",
+        "sklearn.linear_model._logistic.LogisticRegression",
+        "src.model_registry.XGBStringClassifier",
+        "xgboost.sklearn.XGBClassifier",
+        "xgboost.core.Booster",
+        "sklearn.preprocessing.LabelEncoder",
+        "sklearn.preprocessing._label.LabelEncoder",
+        "numpy.ndarray",
+        "numpy.dtype",
+    ]
 
 MODEL_PATH = os.path.join(
     os.path.dirname(os.path.dirname(os.path.abspath(__file__))),

@@ -1,2 +1,10 @@
 
-Accuracy = 0.95, F1 Score = 0.86
+Champion Model: xgboost
+Accuracy = 1.0, Macro F1 = 1.0, Macro Recall = 1.0
+CV Macro F1 = 0.9633 +/- 0.033
+
+All Candidates:
+  logistic_regression: acc=0.9667 f1=0.9425 recall=0.9526
+  random_forest: acc=0.9833 f1=0.9717 recall=0.9600
+  extra_trees: acc=0.9833 f1=0.9780 recall=0.9926
+  xgboost: acc=1.0000 f1=1.0000 recall=1.0000
