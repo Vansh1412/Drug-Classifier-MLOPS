@@ -11,13 +11,15 @@ An end-to-end MLOps platform demonstrating automated data validation, determinis
 This project builds a **Drug Classification** platform predicting the appropriate medication class based on patient biomarkers (Age, Sex, Blood Pressure, Cholesterol, Na-to-K ratio). The training pipeline is fully reproducible and selects a champion model from multiple competing algorithms based on automated quality gates.
 
 **Key Features:**
+- 📦 **Data & Pipeline Versioning** — DVC tracks canonical dataset hashes and pipeline DAG (`dvc repro`)
+- 🧪 **Experiment Tracking** — MLflow tracks parameters, metrics, cross-validation runs, artifacts, and champion lineage
 - 🛡️ **Data Validation** — Pandera schema enforcing value ranges, biological limits, and data types
 - 🎲 **Deterministic ML** — Centralized seed configuration ensuring 100% reproducible splits and metrics
 - 🏆 **Model Competition** — Automated evaluation of Logistic Regression, Random Forest, ExtraTrees, and XGBoost
 - 🥇 **Champion Selection** — Quality gate thresholding (Macro F1, Accuracy, Recall) with automated champion promotion
 - 🌐 **REST API** — FastAPI server with `POST /predict` and `GET /health` endpoints
 - 🔒 **Safe Serialization** — Skops model persistence with strict trusted type whitelisting
-- ✅ **Automated Testing** — 25 pytest tests covering pipeline, API, validation, determinism, and reproducibility
+- ✅ **Automated Testing** — 39 pytest tests covering baseline, Sprint 1, and Sprint 2 functionality
 - ⚙️ **CI/CD** — GitHub Actions pipeline: format → train → test → evaluate → deploy
 
 ## Tech Stack
@@ -25,6 +27,8 @@ This project builds a **Drug Classification** platform predicting the appropriat
 | Category | Tools |
 |---|---|
 | Language | Python 3.10+ |
+| Data & Pipeline Versioning | DVC (Data Version Control) |
+| Experiment Tracking | MLflow |
 | Data Validation | Pandera |
 | ML & Competition | Scikit-learn, XGBoost, Pandas, NumPy, Skops |
 | API | FastAPI, Uvicorn, Pydantic |
@@ -51,11 +55,17 @@ curl -X POST http://localhost:8000/predict \
 # Install dependencies
 pip install -r requirements.txt
 
-# Run deterministic training & competition
+# Run deterministic training & competition directly
 python train.py
 
-# Run test suite (25 tests)
-pytest
+# Or reproduce via DVC pipeline
+dvc repro
+
+# Start local MLflow experiment dashboard
+mlflow ui --backend-store-uri sqlite:///mlruns.db --port 5000
+
+# Run comprehensive test suite (39 tests)
+pytest -v
 
 # Start FastAPI server
 uvicorn api.main:app --port 8000
@@ -73,3 +83,13 @@ uvicorn api.main:app --port 8000
 > **Metric Reconciliation:** Initial documentation historically cited `97.0% Accuracy / 0.94 F1` while `metrics.txt` showed `0.95 Accuracy / 0.86 Macro F1` due to unseeded shuffling. Under Sprint 1's deterministic pipeline (`seed=125`), Random Forest achieves `98.33% / 0.9717`, while model competition promotes **XGBoost** as Champion with `100.0% / 1.0000` (100% reproducible across independent runs).
 
 ![Confusion Matrix](./Results/model_results.png)
+
+## Documentation
+
+- 🏛️ [Architecture](docs/architecture.md) — End-to-end system and component design
+- 🔄 [ML Pipeline](docs/ml-pipeline.md) — Validation, preprocessing, competition, and evaluation details
+- 📦 [DVC Versioning](docs/dvc.md) — Dataset tracking, hash verification, and pipeline execution
+- 🧪 [MLflow Tracking](docs/mlflow.md) — Experiment tracking, parameter logging, UI guide, and lineage
+- 🛡️ [Security](docs/security.md) — Serialization security and vulnerability scanning
+- 🚢 [Deployment](docs/deployment.md) — Container and zero-downtime deployment guide
+- 🧪 [Testing](docs/testing.md) — Test taxonomy and automated test execution

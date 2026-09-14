@@ -98,3 +98,32 @@ Each candidate is evaluated using:
 ### Reconciliation Note:
 - **Historical Discrepancy:** The initial repository README claimed `97.0% Accuracy / 0.94 F1` while `Results/metrics.txt` reported `Accuracy = 0.95, F1 Score = 0.86` due to unseeded shuffling (`drug_df.sample(frac=1)`).
 - **Verified Baseline:** Under the deterministic Sprint 1 pipeline (`seed=125`), the true baseline for Random Forest is **98.33% Accuracy / 0.9717 Macro F1**. Model competition identified **XGBoost** as Champion with **100.0% Accuracy / 1.0000 Macro F1**, fully reproduced across multiple independent runs.
+
+---
+
+## 8. DVC Pipeline Integration (Sprint 2)
+
+Pipeline execution is governed by DVC through `dvc.yaml`:
+1. **`validate` Stage:** Runs Pandera schema validation on `Data/drug.csv` (versioned via `Data/drug.csv.dvc`).
+2. **`train` Stage:** Executes `train.py` when code, configs, or dataset change.
+3. **Execution Commands:**
+   ```bash
+   dvc status    # Verify if stages/data are up to date
+   dvc repro     # Reproduce stages only if inputs changed
+   dvc repro -f  # Force complete pipeline re-execution
+   ```
+4. **Reference:** Full guide in [`docs/dvc.md`](file:///d:/Chrome%20Downloads/CICD-for-Machine-Learning-main/CICD-for-Machine-Learning-main/docs/dvc.md).
+
+---
+
+## 9. MLflow Experiment Tracking & Lineage (Sprint 2)
+
+All training runs are automatically logged to the local MLflow tracking server (`sqlite:///mlruns.db`):
+- **Candidate Runs:** Hyperparameters, test metrics (`accuracy`, `macro_f1`, `macro_recall`), and cross-validation statistics (`cv_macro_f1_mean`, `cv_macro_f1_std`).
+- **Champion Run:** Tagged with `is_champion=true`, quality gate status, all artifact files, and serialized MLflow Scikit-Learn model flavor.
+- **Lineage Metadata:** Every run records `git_commit` SHA, `dvc_dataset_hash`, `python_version`, and seed configuration.
+- **Visual UI:**
+   ```bash
+   mlflow ui --backend-store-uri sqlite:///mlruns.db --port 5000
+   ```
+- **Reference:** Full guide in [`docs/mlflow.md`](file:///d:/Chrome%20Downloads/CICD-for-Machine-Learning-main/CICD-for-Machine-Learning-main/docs/mlflow.md).
