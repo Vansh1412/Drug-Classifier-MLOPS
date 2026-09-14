@@ -1,0 +1,64 @@
+schema: '2.0'
+stages:
+  validate:
+    cmd: python -c "from src.config import load_config; from src.data_validation
+      import load_and_validate; load_and_validate('Data/drug.csv', 
+      load_config())"
+    deps:
+    - path: Data/drug.csv
+      hash: md5
+      md5: 7a10a9eb01e3d5664125ea1dd179c8c9
+      size: 5828
+    - path: configs/model_config.yaml
+      hash: md5
+      md5: dd472a54a87173faabbf6989f1a6c613
+      size: 4814
+    - path: src/data_validation.py
+      hash: md5
+      md5: 03e260baa36688c9889e27b6ff964272
+      size: 4668
+  train:
+    cmd: python train.py
+    deps:
+    - path: Data/drug.csv
+      hash: md5
+      md5: 7a10a9eb01e3d5664125ea1dd179c8c9
+      size: 5828
+    - path: configs/model_config.yaml
+      hash: md5
+      md5: dd472a54a87173faabbf6989f1a6c613
+      size: 4814
+    - path: src
+      hash: md5
+      md5: 5316e75dc48387fc9adf71224cd2cf1b.dir
+      size: 61076
+      nfiles: 16
+    - path: train.py
+      hash: md5
+      md5: ed60b1d0ade3c45e7d93a307c9b494fb
+      size: 12655
+    outs:
+    - path: Model/drug_pipeline.skops
+      hash: md5
+      md5: 1c0613e4c00f6d2aa97b613354219343
+      size: 524492
+    - path: Model/model_metadata.json
+      hash: md5
+      md5: 6e0506dbd9ebdf9c661f8b1ee6f8ee87
+      size: 589
+    - path: Results/competition_report.json
+      hash: md5
+      md5: f97a9ba998e896c41411c55ffb0e0770
+      size: 3041
+    - path: Results/metrics.json
+      hash: md5
+      md5: e710d88c467fbd78111acf0d0df9f18c
+      size: 3969
+    - path: Results/metrics.txt
+      hash: md5
+      md5: 65b5a1d0742ab7583003dd2126377a0d
+      size: 340
+    - path: Results/model_results.png
+      hash: md5
+      md5: 403654e92b0406be7e9dea2c9d5dd32a
+      size: 31499

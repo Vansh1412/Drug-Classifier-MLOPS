@@ -1,0 +1,31 @@
+# =============================================================================
+# MedMLOps-X — DVC Reproducible Training Pipeline
+# =============================================================================
+stages:
+  validate:
+    cmd: python -c "from src.config import load_config; from src.data_validation import load_and_validate; load_and_validate('Data/drug.csv', load_config())"
+    deps:
+      - Data/drug.csv
+      - configs/model_config.yaml
+      - src/data_validation.py
+
+  train:
+    cmd: python train.py
+    deps:
+      - Data/drug.csv
+      - configs/model_config.yaml
+      - src
+      - train.py
+    outs:
+      - Model/drug_pipeline.skops:
+          cache: false
+      - Model/model_metadata.json:
+          cache: false
+      - Results/metrics.json:
+          cache: false
+      - Results/metrics.txt:
+          cache: false
+      - Results/model_results.png:
+          cache: false
+      - Results/competition_report.json:
+          cache: false
