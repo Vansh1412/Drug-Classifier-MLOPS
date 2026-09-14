@@ -143,3 +143,13 @@ results:
   metrics_json: "Results/metrics.json"
   confusion_matrix_png: "Results/model_results.png"
   competition_report_json: "Results/competition_report.json"
+
+# ---------------------------------------------------------------------------
+# MLflow Experiment Tracking
+# ---------------------------------------------------------------------------
+mlflow:
+  enabled: true
+  experiment_name: "MedMLOps-X-Drug-Classifier"
+  tracking_uri: "sqlite:///mlruns.db"
+  artifact_location: "mlartifacts"
+  log_models: true

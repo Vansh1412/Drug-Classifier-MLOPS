@@ -37,6 +37,12 @@ from src.data_validation import load_and_validate
 from src.evaluate import train_and_evaluate
 from src.model_registry import build_model_candidates
 from src.preprocessing import build_preprocessor
+from src.tracking import (
+    get_lineage_metadata,
+    log_candidate_run,
+    log_champion_run,
+    setup_mlflow,
+)
 
 # Use non-interactive matplotlib backend (required when running headlessly)
 matplotlib.use("Agg")
@@ -58,10 +64,17 @@ def main() -> None:
     run_start = time.perf_counter()
 
     # -------------------------------------------------------------------------
-    # Step 1: Load Configuration
+    # Step 1: Load Configuration & Tracking
     # -------------------------------------------------------------------------
     cfg = load_config(args.config)
     print(f"[1/8] Configuration loaded from: {args.config or 'configs/model_config.yaml'}")
+
+    mlflow_enabled = cfg.get("mlflow", {}).get("enabled", False)
+    lineage = {}
+    if mlflow_enabled:
+        setup_mlflow(cfg)
+        lineage = get_lineage_metadata(cfg)
+        print(f"      MLflow initialized (lineage: git={lineage['git_commit'][:7]}, dvc={lineage['dvc_dataset_hash'][:7]})")
 
     # -------------------------------------------------------------------------
     # Step 2: Load & Validate Dataset
@@ -117,6 +130,8 @@ def main() -> None:
             pipeline, X_train, y_train, X_test, y_test, cfg, name, model_params
         )
         all_results.append({**result, "_pipeline": pipeline})
+        if mlflow_enabled:
+            log_candidate_run(name, estimator, result, cfg, lineage)
         print(
             f"        accuracy={result['accuracy']:.4f} | "
             f"macro_f1={result['macro_f1']:.4f} | "
@@ -262,6 +277,13 @@ def main() -> None:
     with open(metadata_path, "w", encoding="utf-8") as fh:
         json.dump(metadata, fh, indent=2)
     print(f"      Model metadata saved:     {metadata_path}")
+
+    # --- Log Champion to MLflow ---
+    if mlflow_enabled:
+        champ_run_id = log_champion_run(
+            champion_result, challengers, failing_results, champion_pipeline, cfg, lineage
+        )
+        print(f"      MLflow champion logged:   run_id={champ_run_id[:8]}")
 
     # -------------------------------------------------------------------------
     # Step 8: Summary
