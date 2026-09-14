@@ -13,7 +13,12 @@ warnings.filterwarnings("ignore", category=InconsistentVersionWarning)
 # --- App Setup ---
 app = FastAPI(
     title="Drug Classification API",
-    description="REST API to predict the recommended drug type based on patient features using a trained RandomForest pipeline.",
+    description=(
+        "REST API to predict recommended drug types based on patient biometric features "
+        "using a trained scikit-learn RandomForest pipeline.\n\n"
+        "⚠️ **MEDICAL SAFETY DISCLAIMER**: This system is an educational machine-learning demonstration "
+        "and is NOT a clinical diagnostic or prescribing tool. Predictions must never be used as medical advice."
+    ),
     version="1.0.0",
 )
 
