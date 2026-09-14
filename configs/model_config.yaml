@@ -1,15 +1,25 @@
 # =============================================================================
-# MedMLOps-X — Model & Pipeline Configuration
+# MedMLOps-X — Centralized Configuration
 # =============================================================================
 
 project:
   name: "medmlops-x"
-  version: "0.1.0"
+  version: "0.2.0"
   description: "Production Drug Classifier MLOps Platform"
 
+# ---------------------------------------------------------------------------
+# Data Configuration
+# ---------------------------------------------------------------------------
 data:
   data_path: "Data/drug.csv"
   target_column: "Drug"
+  columns:
+    - "Age"
+    - "Sex"
+    - "BP"
+    - "Cholesterol"
+    - "Na_to_K"
+    - "Drug"
   categorical_features:
     - "Sex"
     - "BP"
@@ -20,16 +30,86 @@ data:
     - "Na_to_K"
   numerical_indices: [0, 4]
   test_size: 0.3
-  random_state: 125
+  shuffle_random_state: 125   # Seed for dataset shuffling (drug_df.sample)
+  split_random_state: 125     # Seed for train_test_split
+  cv_random_state: 125        # Seed for StratifiedKFold cross-validation
+  cv_folds: 5
 
-model:
-  algorithm: "RandomForestClassifier"
-  n_estimators: 10
-  random_state: 125
-  model_path: "Model/drug_pipeline.skops"
+# ---------------------------------------------------------------------------
+# Validation Constraints
+# ---------------------------------------------------------------------------
+validation:
+  age_min: 15
+  age_max: 74
+  na_to_k_min: 6.0
+  na_to_k_max: 39.0
+  sex_categories:
+    - "F"
+    - "M"
+  bp_categories:
+    - "HIGH"
+    - "LOW"
+    - "NORMAL"
+  cholesterol_categories:
+    - "HIGH"
+    - "NORMAL"
+  valid_drug_classes:
+    - "DrugY"
+    - "drugA"
+    - "drugB"
+    - "drugC"
+    - "drugX"
 
+# ---------------------------------------------------------------------------
+# Model Competition Candidates
+# ---------------------------------------------------------------------------
+models:
+  logistic_regression:
+    class: "LogisticRegression"
+    params:
+      max_iter: 2000
+      random_state: 125
+      solver: "lbfgs"
+
+  random_forest:
+    class: "RandomForestClassifier"
+    params:
+      n_estimators: 100
+      random_state: 125
+      n_jobs: 1      # n_jobs=1 ensures deterministic output on same platform
+
+  extra_trees:
+    class: "ExtraTreesClassifier"
+    params:
+      n_estimators: 100
+      random_state: 125
+      n_jobs: 1
+
+  xgboost:
+    class: "XGBClassifier"
+    params:
+      n_estimators: 100
+      seed: 125
+      nthread: 1
+      eval_metric: "mlogloss"
+      verbosity: 0
+      # XGBoost requires integer-encoded labels; handled by LabelEncoder in train.py
+
+# ---------------------------------------------------------------------------
+# Champion Selection Policy
+# ---------------------------------------------------------------------------
+champion:
+  primary_metric: "macro_f1"          # Metric used to rank candidates
+  min_accuracy: 0.80
+  min_macro_f1: 0.75
+  min_recall: 0.70
+  artifact_path: "Model/drug_pipeline.skops"
+  metadata_path: "Model/model_metadata.json"
+
+# ---------------------------------------------------------------------------
+# Security — Skops Trusted Types Whitelist
+# ---------------------------------------------------------------------------
 security:
-  # Explicit trusted types for secure skops deserialization
   trusted_types:
     - "sklearn.pipeline.Pipeline"
     - "sklearn.preprocessing.OneHotEncoder"
@@ -38,16 +118,28 @@ security:
     - "sklearn.preprocessing.OrdinalEncoder"
     - "sklearn.impute.SimpleImputer"
     - "sklearn.tree.DecisionTreeClassifier"
+    - "sklearn.tree._classes.DecisionTreeClassifier"
     - "sklearn.ensemble.RandomForestClassifier"
+    - "sklearn.ensemble._forest.RandomForestClassifier"
+    - "sklearn.ensemble.ExtraTreesClassifier"
+    - "sklearn.ensemble._forest.ExtraTreesClassifier"
+    - "sklearn.tree.ExtraTreeClassifier"
+    - "sklearn.tree._classes.ExtraTreeClassifier"
+    - "sklearn.linear_model.LogisticRegression"
+    - "sklearn.linear_model._logistic.LogisticRegression"
+    - "src.model_registry.XGBStringClassifier"
+    - "xgboost.sklearn.XGBClassifier"
+    - "xgboost.core.Booster"
+    - "sklearn.preprocessing.LabelEncoder"
+    - "sklearn.preprocessing._label.LabelEncoder"
+    - "numpy.ndarray"
     - "numpy.dtype"
 
-evaluation:
-  # ML Quality Gate thresholds
-  min_accuracy: 0.80
-  min_macro_f1: 0.75
-  valid_classes:
-    - "DrugY"
-    - "drugA"
-    - "drugB"
-    - "drugC"
-    - "drugX"
+# ---------------------------------------------------------------------------
+# Results Paths
+# ---------------------------------------------------------------------------
+results:
+  metrics_txt: "Results/metrics.txt"
+  metrics_json: "Results/metrics.json"
+  confusion_matrix_png: "Results/model_results.png"
+  competition_report_json: "Results/competition_report.json"
