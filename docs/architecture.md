@@ -8,16 +8,20 @@
 +-----------------------------------------------------------------------------------+
 |                                  DATA & TRAINING                                  |
 |                                                                                   |
-|  [Data/drug.csv]  -->  [train.py]  -->  [ColumnTransformer + RandomForest]       |
-|                                    -->  [Model/drug_pipeline.skops]               |
-|                                    -->  [Results/metrics.txt + model_results.png] |
+|  [Data/drug.csv]  -->  [src/data_validation.py (Pandera)]                         |
+|                   -->  [train.py (Deterministic Seeding: 125)]                    |
+|                   -->  [src/model_registry.py (LR, RF, ExtraTrees, XGBoost)]      |
+|                   -->  [src/champion_selection.py (Quality Gate + Macro F1 Rank)] |
+|                   -->  [Model/drug_pipeline.skops + Model/model_metadata.json]    |
+|                   -->  [Results/metrics.json + competition_report.json]           |
 +------------------------------------------+----------------------------------------+
                                            |
                                            v
 +-----------------------------------------------------------------------------------+
 |                              TESTING & VERIFICATION                               |
 |                                                                                   |
-|  [pyproject.toml]  -->  [tests/test_pipeline.py] (6 pytest automated tests)       |
+|  [pyproject.toml]  -->  [tests/test_pipeline.py] (6 baseline tests)               |
+|                    -->  [tests/test_sprint1.py] (19 validation & ML tests)        |
 +------------------------------------------+----------------------------------------+
                                            |
                                            v
@@ -44,12 +48,19 @@
 | Component | Path | Responsibility |
 |---|---|---|
 | **Data Layer** | `Data/drug.csv` | Canonical patient tabular dataset (~200 records) |
-| **Pipeline Layer** | `train.py` | Feature preprocessing and model training pipeline |
-| **Artifact Store** | `Model/drug_pipeline.skops` | Serialized scikit-learn Pipeline using `skops` |
+| **Data Validation** | `src/data_validation.py` | Pandera schema enforcing clinical value ranges and datatypes |
+| **Model Registry** | `src/model_registry.py` | Factory for multi-model competition (LR, RF, ET, XGBoost) |
+| **Preprocessing** | `src/preprocessing.py` | Shared ColumnTransformer (OrdinalEncoder + StandardScaler) |
+| **Evaluation Engine** | `src/evaluate.py` | 5-Fold Stratified CV and multi-class metrics computation |
+| **Champion Selection** | `src/champion_selection.py` | Quality gate thresholding and primary metric leaderboard |
+| **Pipeline Runner** | `train.py` | Deterministic end-to-end training and competition execution |
 | **Config Layer** | `configs/model_config.yaml` | Centralized hyperparams, seeds, thresholds, trusted types |
+| **Model Artifact** | `Model/drug_pipeline.skops` | Serialized champion scikit-learn Pipeline using `skops` |
+| **Model Metadata** | `Model/model_metadata.json` | Metadata, hyperparameters, and evaluation records |
+| **Structured Metrics** | `Results/metrics.json` | Machine-readable metrics for all candidates |
 | **API Layer** | `api/main.py` | FastAPI production REST server with Pydantic validation |
 | **UI Layer** | `App/drug_app.py` | Gradio interface for Hugging Face Spaces |
-| **Test Suite** | `tests/test_pipeline.py` | Pytest unit and integration test suite |
+| **Test Suite** | `tests/` | 25 automated pytest tests covering baseline, pipeline, validation, ML |
 | **Container** | `Dockerfile`, `docker-compose.yml` | Multi-stage containerization with health checks |
 | **CI Automation** | `.github/workflows/ci.yml` | Continuous integration and CML evaluation reports |
 | **CD Automation** | `.github/workflows/cd.yml` | Branch-guarded continuous deployment to HF Spaces |

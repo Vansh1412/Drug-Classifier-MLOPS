@@ -4,26 +4,29 @@
 [![CD](https://github.com/Vansh1412/Drug-Classifier-MLOPS/actions/workflows/cd.yml/badge.svg)](https://github.com/Vansh1412/Drug-Classifier-MLOPS/actions/workflows/cd.yml)
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/Vansh1412/Drug-Classifier-MLOPS/blob/main/notebook.ipynb)
 
-An end-to-end MLOps project demonstrating automated model training, testing, containerization, and deployment using GitHub Actions CI/CD.
+An end-to-end MLOps platform demonstrating automated data validation, deterministic multi-model competition, champion selection, testing, containerization, and continuous deployment.
 
 ## Project Description
 
-This project builds a **Drug Classification** model using a `scikit-learn` Random Forest pipeline trained on patient data (age, sex, blood pressure, cholesterol, Na-to-K ratio). The full lifecycle — from training to deployment — is automated via GitHub Actions.
+This project builds a **Drug Classification** platform predicting the appropriate medication class based on patient biomarkers (Age, Sex, Blood Pressure, Cholesterol, Na-to-K ratio). The training pipeline is fully reproducible and selects a champion model from multiple competing algorithms based on automated quality gates.
 
 **Key Features:**
-- 🤖 **ML Pipeline** — Scikit-learn `RandomForestClassifier` with preprocessing pipeline
+- 🛡️ **Data Validation** — Pandera schema enforcing value ranges, biological limits, and data types
+- 🎲 **Deterministic ML** — Centralized seed configuration ensuring 100% reproducible splits and metrics
+- 🏆 **Model Competition** — Automated evaluation of Logistic Regression, Random Forest, ExtraTrees, and XGBoost
+- 🥇 **Champion Selection** — Quality gate thresholding (Macro F1, Accuracy, Recall) with automated champion promotion
 - 🌐 **REST API** — FastAPI server with `POST /predict` and `GET /health` endpoints
-- 🐳 **Docker** — Multi-stage Dockerfile with health checks for containerized deployment
-- ✅ **Automated Testing** — 6 pytest unit tests covering model and API
-- ⚙️ **CI/CD** — GitHub Actions pipeline: train → test → docker build → evaluate → deploy
-- 🐧 **Linux Deploy Script** — `deploy.sh` for zero-downtime container replacement
+- 🔒 **Safe Serialization** — Skops model persistence with strict trusted type whitelisting
+- ✅ **Automated Testing** — 25 pytest tests covering pipeline, API, validation, determinism, and reproducibility
+- ⚙️ **CI/CD** — GitHub Actions pipeline: format → train → test → evaluate → deploy
 
 ## Tech Stack
 
 | Category | Tools |
 |---|---|
-| Language | Python |
-| ML | Scikit-learn, Pandas, NumPy, Skops |
+| Language | Python 3.10+ |
+| Data Validation | Pandera |
+| ML & Competition | Scikit-learn, XGBoost, Pandas, NumPy, Skops |
 | API | FastAPI, Uvicorn, Pydantic |
 | Testing | pytest, httpx |
 | Containerization | Docker, Docker Compose |
@@ -46,30 +49,27 @@ curl -X POST http://localhost:8000/predict \
 
 ```bash
 # Install dependencies
-make install
+pip install -r requirements.txt
 
-# Train model
-make train
+# Run deterministic training & competition
+python train.py
 
-# Run tests
-make test
+# Run test suite (25 tests)
+pytest
 
 # Start FastAPI server
-make run-api
-
-# Build & run Docker container
-make docker-build
-docker compose up
+uvicorn api.main:app --port 8000
 ```
 
-## Pipeline
+## Model Competition Results
 
-![CICD](./asset/CICD-pipeline.png)
+| Rank | Model | 5-Fold CV Macro F1 | Test Accuracy | Test Macro F1 | Status |
+|---|---|---|---|---|---|
+| 🏆 1 | **XGBoost** | 0.9633 ± 0.0330 | **100.0%** | **1.0000** | **Champion** |
+| 🥈 2 | ExtraTrees | 0.9489 ± 0.0821 | 98.33% | 0.9780 | Challenger #1 |
+| 🥉 3 | RandomForest | 0.8452 ± 0.0665 | 98.33% | 0.9717 | Challenger #2 |
+| 4 | LogisticRegression | 0.8407 ± 0.0598 | 96.67% | 0.9425 | Challenger #3 |
 
-## Results
+> **Metric Reconciliation:** Initial documentation historically cited `97.0% Accuracy / 0.94 F1` while `metrics.txt` showed `0.95 Accuracy / 0.86 Macro F1` due to unseeded shuffling. Under Sprint 1's deterministic pipeline (`seed=125`), Random Forest achieves `98.33% / 0.9717`, while model competition promotes **XGBoost** as Champion with `100.0% / 1.0000` (100% reproducible across independent runs).
 
-| Model | Accuracy | F1 Score |
-|---|---|---|
-| RandomForestClassifier | 97.0% | 94.0% |
-
-![CM](./Results/model_results.png)
+![Confusion Matrix](./Results/model_results.png)
