@@ -1,4 +1,5 @@
 name: Continuous Integration
+
 on:
   push:
     branches: [ "main" ]
@@ -6,7 +7,10 @@ on:
     branches: [ "main" ]
   workflow_dispatch:
 
-permissions: write-all
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
 
 jobs:
   build:
@@ -17,22 +21,83 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.10"
+          python-version: "3.13"
 
-      - name: Install Packages
-        run: pip install --upgrade pip && pip install -r requirements.txt
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
 
-      - name: Format Code
-        run: black train.py
+      - name: Format Check (Black)
+        run: black --check .
 
-      - name: Train
-        run: python train.py
+      - name: Lint Check (Ruff)
+        run: ruff check .
 
-      - name: Test
-        run: pytest tests/ -v
+      - name: Verify DVC Pipeline Status
+        run: dvc status
 
-      - name: Build Docker Image
-        run: docker build -t drug-classifier .
+      - name: Run Test Suite
+        run: pytest -v
+
+      - name: Build Hardened Docker Image
+        run: docker build -t medmlops-x:local .
+
+      - name: Container Smoke & Security Test
+        run: |
+          echo "Starting MedMLOps-X production container..."
+          docker run -d --name medmlops-container -p 8000:8000 medmlops-x:local
+
+          echo "Waiting for container health check..."
+          for i in $(seq 1 30); do
+            if curl -s -f http://localhost:8000/health > /dev/null; then
+              echo "Container reached healthy state in $i seconds"
+              break
+            fi
+            sleep 1
+          done
+
+          echo "=== 1. Health Endpoint Smoke Test ==="
+          HEALTH_RESP=$(curl -s -f http://localhost:8000/health)
+          echo "Health: $HEALTH_RESP"
+          echo "$HEALTH_RESP" | grep -q '"status":"healthy"'
+
+          echo "=== 2. Predict Endpoint Smoke Test ==="
+          PRED_RESP=$(curl -s -f -X POST http://localhost:8000/predict \
+            -H "Content-Type: application/json" \
+            -d '{"age": 30, "sex": "M", "blood_pressure": "HIGH", "cholesterol": "NORMAL", "na_to_k_ratio": 15.4}')
+          echo "Predict: $PRED_RESP"
+          echo "$PRED_RESP" | grep -q '"predicted_drug"'
+
+          echo "=== 3. Explain Endpoint Smoke Test ==="
+          EXPLAIN_RESP=$(curl -s -f -X POST http://localhost:8000/explain \
+            -H "Content-Type: application/json" \
+            -d '{"age": 30, "sex": "M", "blood_pressure": "HIGH", "cholesterol": "NORMAL", "na_to_k_ratio": 15.4}')
+          echo "Explain: $EXPLAIN_RESP"
+          echo "$EXPLAIN_RESP" | grep -q '"feature_attributions"'
+
+          echo "=== 4. Version Endpoint Smoke Test ==="
+          VER_RESP=$(curl -s -f http://localhost:8000/version)
+          echo "Version: $VER_RESP"
+          echo "$VER_RESP" | grep -q '"model_name"'
+
+          echo "=== 5. Metrics Endpoint Smoke Test ==="
+          METRICS_RESP=$(curl -s -f http://localhost:8000/metrics)
+          echo "Metrics: $METRICS_RESP"
+          echo "$METRICS_RESP" | grep -q '"total_requests"'
+
+          echo "=== 6. Security: Non-Root User Verification ==="
+          CONTAINER_USER=$(docker exec medmlops-container whoami)
+          echo "Runtime Container User: $CONTAINER_USER"
+          if [ "$CONTAINER_USER" = "root" ]; then
+            echo "ERROR: Container is executing as root!"
+            exit 1
+          fi
+
+          echo "=== 7. Container Cleanup ==="
+          docker logs medmlops-container
+          docker stop medmlops-container
+          docker rm medmlops-container
 
       - name: Setup CML
         run: npm install -g @dvcorg/cml
@@ -41,11 +106,15 @@ jobs:
         env:
           REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          echo "## Model Metrics" > report.md
-          cat ./Results/metrics.txt >> report.md
+          echo "## Model Metrics & CI Status" > report.md
+          if [ -f "./Results/metrics.txt" ]; then
+            cat ./Results/metrics.txt >> report.md
+          fi
           echo "" >> report.md
           echo "## Confusion Matrix" >> report.md
-          echo "![Confusion Matrix](./Results/model_results.png)" >> report.md
+          if [ -f "./Results/model_results.png" ]; then
+            echo "![Confusion Matrix](./Results/model_results.png)" >> report.md
+          fi
           
           # Render directly on GitHub Actions Job Summary tab
           cat report.md >> $GITHUB_STEP_SUMMARY
