@@ -197,3 +197,24 @@ monitoring:
       max_null_rate: 0.0
       max_out_of_range_rate: 0.0
 
+# ---------------------------------------------------------------------------
+# Automated Retraining & Model Promotion Configuration (Sprint 6)
+# ---------------------------------------------------------------------------
+retraining:
+  enabled: true
+  min_monitoring_samples: 20
+  challengers_dir: "Model/challengers"
+  archive_dir: "Model/archive"
+  manifest_path: "Model/registry_manifest.json"
+  trigger_history_path: "monitoring/retraining_history.json"
+  quality_gate:
+    max_allowed_f1_drop: 0.02
+    max_allowed_cv_f1_drop: 0.03
+    min_accuracy: 0.80
+    min_macro_f1: 0.75
+    min_recall: 0.70
+  security:
+    api_key_header: "X-API-Key"
+    admin_api_key_env: "MEDMLOPS_ADMIN_API_KEY"
+    default_admin_key: "medmlops-admin-key-sprint6"
+
