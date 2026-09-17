@@ -68,12 +68,14 @@
 | **Structured Metrics** | `Results/metrics.json` | Machine-readable metrics for all candidates |
 | **API Layer** | `api/main.py` | FastAPI production REST server (/health, /predict, /explain, /version, /metrics) |
 | **UI Layer** | `App/drug_app.py` | Gradio interface for Hugging Face Spaces |
-| **Test Suite** | `tests/` | 62 automated pytest tests covering baseline, Sprint 1, Sprint 2, and Sprint 3 |
-| **Container** | `Dockerfile`, `docker-compose.yml` | Multi-stage containerization with health checks |
-| **CI Automation** | `.github/workflows/ci.yml` | Continuous integration and CML evaluation reports |
+| **Test Suite** | `tests/` | 81 automated pytest tests covering baseline, Sprint 1, 2, 3, and Sprint 4 |
+| **Container** | `Dockerfile`, `docker-compose.yml` | Hardened multi-stage build, non-root user (appuser), active healthcheck |
+| **CI Automation** | `.github/workflows/ci.yml` | Continuous integration: black, ruff, dvc, pytest, Docker build & smoke tests |
 | **CD Automation** | `.github/workflows/cd.yml` | Branch-guarded continuous deployment to HF Spaces |
 | **Host Deploy** | `deploy.sh` | Shell script for zero-downtime Linux container rollout |
 | **Tool Config** | `pyproject.toml` | Unified configuration for pytest, black, ruff, coverage |
+| **Container Docs** | `docs/docker.md` | Multi-stage architecture, security controls, and CLI guide |
+| **CI/CD Docs** | `docs/ci-cd.md` | Automated quality gates, smoke testing protocol, and permissions |
 
 ## 3. Medical Safety Boundary
 

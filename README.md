@@ -21,8 +21,9 @@ This project builds a **Drug Classification** platform predicting the appropriat
 - 🏆 **Model Competition** — Automated evaluation of Logistic Regression, Random Forest, ExtraTrees, and XGBoost
 - 🥇 **Champion Selection** — Quality gate thresholding (Macro F1, Accuracy, Recall) with automated champion promotion
 - 🔒 **Safe Serialization** — Skops model persistence with strict trusted type whitelisting
-- ✅ **Automated Testing** — 62 pytest tests covering baseline, Sprint 1, Sprint 2, and Sprint 3 functionality
-- ⚙️ **CI/CD** — GitHub Actions pipeline: format → train → test → evaluate → deploy
+- 🐳 **Hardened Containerization** — Multi-stage Docker build, non-root user (appuser UID 10001), healthcheck endpoint polling
+- ✅ **Automated Testing** — 81 pytest tests covering baseline, Sprint 1, Sprint 2, Sprint 3, and Sprint 4
+- ⚙️ **CI/CD** — GitHub Actions pipeline: format → lint → DVC integrity → 81 tests → Docker build & smoke test → deploy
 
 ## Tech Stack
 
@@ -78,11 +79,33 @@ dvc repro
 # Start local MLflow experiment dashboard
 mlflow ui --backend-store-uri sqlite:///mlruns.db --port 5000
 
-# Run comprehensive test suite (62 tests)
+# Run comprehensive test suite (81 tests)
 pytest -v
 
-# Start FastAPI server
+# Start FastAPI server directly
 uvicorn api.main:app --port 8000
+```
+
+## Docker Containerization
+
+```bash
+# 1. Build hardened production multi-stage image
+docker build -t medmlops-x:local .
+
+# 2. Run container as non-root user with port 8000 mapped
+docker run -d --name medmlops-api -p 8000:8000 medmlops-x:local
+
+# 3. Check container health status
+docker inspect --format='{{json .State.Health}}' medmlops-api
+
+# 4. Confirm non-root execution (appuser: UID 10001)
+docker exec medmlops-api whoami
+
+# 5. Stop and clean up container
+docker stop medmlops-api && docker rm medmlops-api
+
+# Or launch via Docker Compose:
+docker compose up -d
 ```
 
 ## Model Competition Results
@@ -101,6 +124,8 @@ uvicorn api.main:app --port 8000
 ## Documentation
 
 - 🏛️ [Architecture](docs/architecture.md) — End-to-end system and component design
+- 🐳 [Docker Architecture](docs/docker.md) — Multi-stage build, non-root user, and container hardening
+- ⚙️ [CI/CD Pipeline](docs/ci-cd.md) — GitHub Actions automated quality gates, smoke tests, and permissions
 - 🔍 [Explainability](docs/explainability.md) — SHAP TreeExplainer methodology, mapping, and interpretation
 - 🌐 [REST API Reference](docs/api.md) — Endpoints, schemas, validation rules, and error codes
 - 🔄 [ML Pipeline](docs/ml-pipeline.md) — Validation, preprocessing, competition, and evaluation details
