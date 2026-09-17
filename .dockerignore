@@ -47,3 +47,4 @@ deploy.sh
 Makefile
 sprint*.md
 *.log
+monitoring/reports/*.json

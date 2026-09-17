@@ -169,3 +169,31 @@ api:
   version: "1.1.0"
   metrics_enabled: true
 
+# ---------------------------------------------------------------------------
+# Continuous Monitoring & Drift Detection Configuration
+# ---------------------------------------------------------------------------
+monitoring:
+  enabled: true
+  reference_dataset: "Data/drug.csv"
+  reports_dir: "monitoring/reports"
+  max_batch_size: 1000
+  thresholds:
+    numerical:
+      method: "ks"
+      p_value_warning: 0.05
+      p_value_drift: 0.01
+      wasserstein_warning: 0.15
+    categorical:
+      method: "psi"
+      psi_warning: 0.10
+      psi_drift: 0.20
+      chi2_p_value_drift: 0.05
+    prediction:
+      class_psi_warning: 0.10
+      class_psi_drift: 0.20
+      confidence_ks_warning: 0.05
+      confidence_ks_drift: 0.01
+    quality:
+      max_null_rate: 0.0
+      max_out_of_range_rate: 0.0
+

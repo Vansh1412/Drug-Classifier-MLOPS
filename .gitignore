@@ -165,3 +165,7 @@ cython_debug/
 mlruns/
 mlruns.db
 mlartifacts/
+
+# MedMLOps-X Monitoring Reports
+monitoring/reports/*.json
+!monitoring/reports/.gitkeep
