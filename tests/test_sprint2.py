@@ -9,7 +9,6 @@ Covers:
   - Backward compatibility with existing pipeline and Skops artifacts
 """
 
-import os
 import sys
 from pathlib import Path
 
@@ -21,7 +20,7 @@ PROJECT_ROOT = Path(__file__).parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
 from src.config import get_trusted_types, load_config
-from src.tracking import get_dvc_dataset_hash, get_git_commit_sha, get_lineage_metadata
+from src.tracking import get_dvc_dataset_hash, get_git_commit_sha
 
 
 @pytest.fixture
@@ -38,9 +37,13 @@ def mlflow_client(config):
 
 @pytest.fixture
 def mlflow_experiment(config, mlflow_client):
-    exp_name = config.get("mlflow", {}).get("experiment_name", "MedMLOps-X-Drug-Classifier")
+    exp_name = config.get("mlflow", {}).get(
+        "experiment_name", "MedMLOps-X-Drug-Classifier"
+    )
     exp = mlflow_client.get_experiment_by_name(exp_name)
-    assert exp is not None, f"MLflow experiment '{exp_name}' not found. Run training first."
+    assert (
+        exp is not None
+    ), f"MLflow experiment '{exp_name}' not found. Run training first."
     return exp
 
 
@@ -115,7 +118,9 @@ class TestMLflowTracking:
         assert mlflow_experiment.name == "MedMLOps-X-Drug-Classifier"
         assert mlflow_experiment.lifecycle_stage == "active"
 
-    def test_candidate_runs_logged_with_parameters(self, mlflow_client, mlflow_experiment):
+    def test_candidate_runs_logged_with_parameters(
+        self, mlflow_client, mlflow_experiment
+    ):
         """Assert that candidate model runs log configuration and hyperparameters."""
         runs = mlflow_client.search_runs(
             experiment_ids=[mlflow_experiment.experiment_id],
@@ -124,7 +129,12 @@ class TestMLflowTracking:
         assert len(runs) >= 4, f"Expected at least 4 candidate runs, found {len(runs)}"
 
         logged_candidates = {r.data.params.get("candidate_name") for r in runs}
-        expected_candidates = {"logistic_regression", "random_forest", "extra_trees", "xgboost"}
+        expected_candidates = {
+            "logistic_regression",
+            "random_forest",
+            "extra_trees",
+            "xgboost",
+        }
         assert expected_candidates.issubset(logged_candidates)
 
         for run in runs:
@@ -135,14 +145,18 @@ class TestMLflowTracking:
 
     def test_metrics_logged_for_runs(self, mlflow_client, mlflow_experiment):
         """Assert that accuracy, macro F1, and cross-validation metrics are recorded."""
-        runs = mlflow_client.search_runs(experiment_ids=[mlflow_experiment.experiment_id])
+        runs = mlflow_client.search_runs(
+            experiment_ids=[mlflow_experiment.experiment_id]
+        )
         assert len(runs) > 0
 
         for run in runs:
             metrics = run.data.metrics
             assert "accuracy" in metrics or "champion_accuracy" in metrics
             assert "macro_f1" in metrics or "champion_macro_f1" in metrics
-            assert "cv_macro_f1_mean" in metrics or "champion_cv_macro_f1_mean" in metrics
+            assert (
+                "cv_macro_f1_mean" in metrics or "champion_cv_macro_f1_mean" in metrics
+            )
 
 
 # =============================================================================
@@ -163,11 +177,17 @@ class TestExperimentLineage:
 
     def test_lineage_metadata_logged_in_runs(self, mlflow_client, mlflow_experiment):
         """Assert that every MLflow run contains git_commit and dvc_dataset_hash tags."""
-        runs = mlflow_client.search_runs(experiment_ids=[mlflow_experiment.experiment_id])
+        runs = mlflow_client.search_runs(
+            experiment_ids=[mlflow_experiment.experiment_id]
+        )
         for run in runs:
             tags = run.data.tags
-            assert "git_commit" in tags, f"Run {run.info.run_name} missing git_commit tag"
-            assert "dvc_dataset_hash" in tags, f"Run {run.info.run_name} missing dvc_dataset_hash tag"
+            assert (
+                "git_commit" in tags
+            ), f"Run {run.info.run_name} missing git_commit tag"
+            assert (
+                "dvc_dataset_hash" in tags
+            ), f"Run {run.info.run_name} missing dvc_dataset_hash tag"
             assert len(tags["git_commit"]) > 0
             assert len(tags["dvc_dataset_hash"]) > 0
 
@@ -188,7 +208,9 @@ class TestChampionTracking:
         assert champ.data.tags.get("quality_gate") == "PASSED"
         assert champ.data.params.get("champion_name") == "xgboost"
 
-    def test_champion_artifacts_logged_in_mlflow(self, mlflow_client, mlflow_experiment):
+    def test_champion_artifacts_logged_in_mlflow(
+        self, mlflow_client, mlflow_experiment
+    ):
         """Assert that metrics and reports are saved as artifacts in the champion run."""
         champion_runs = mlflow_client.search_runs(
             experiment_ids=[mlflow_experiment.experiment_id],
@@ -207,7 +229,9 @@ class TestChampionTracking:
 # 5. Model Logging & String Label Contract Tests (Task S2-T9)
 # =============================================================================
 class TestModelLogging:
-    def test_mlflow_logged_model_loads_and_predicts(self, config, mlflow_client, mlflow_experiment):
+    def test_mlflow_logged_model_loads_and_predicts(
+        self, config, mlflow_client, mlflow_experiment
+    ):
         """Assert that MLflow logged model loads with skops trusted types and emits string labels."""
         champion_runs = mlflow_client.search_runs(
             experiment_ids=[mlflow_experiment.experiment_id],
@@ -228,6 +252,7 @@ class TestModelLogging:
     def test_skops_disk_artifact_remains_functional(self):
         """Assert that Model/drug_pipeline.skops remains directly usable by FastAPI."""
         import skops.io as sio
+
         cfg = load_config()
         trusted = get_trusted_types(cfg)
         model = sio.load("Model/drug_pipeline.skops", trusted=trusted)

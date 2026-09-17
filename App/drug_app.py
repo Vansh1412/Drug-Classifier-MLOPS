@@ -1,6 +1,7 @@
+import warnings
+
 import gradio as gr
 import skops.io as sio
-import warnings
 from sklearn.exceptions import InconsistentVersionWarning
 
 # Suppress the version warnings

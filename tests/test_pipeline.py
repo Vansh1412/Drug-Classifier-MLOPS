@@ -7,7 +7,6 @@ import os
 import sys
 import warnings
 
-import pytest
 from sklearn.exceptions import InconsistentVersionWarning
 
 warnings.filterwarnings("ignore", category=InconsistentVersionWarning)
@@ -24,6 +23,7 @@ VALID_DRUGS = {"DrugY", "drugA", "drugB", "drugC", "drugX"}
 
 try:
     from src.config import get_trusted_types, load_config
+
     TRUSTED_TYPES = get_trusted_types(load_config())
 except Exception:
     TRUSTED_TYPES = [
@@ -58,9 +58,9 @@ except Exception:
 # ─────────────────────────────────────────────
 def test_model_file_exists():
     """Assert that the trained model file is present on disk."""
-    assert os.path.exists(MODEL_PATH), (
-        f"Model file not found at '{MODEL_PATH}'. Run 'make train' to generate it."
-    )
+    assert os.path.exists(
+        MODEL_PATH
+    ), f"Model file not found at '{MODEL_PATH}'. Run 'make train' to generate it."
 
 
 # ─────────────────────────────────────────────
@@ -73,9 +73,9 @@ def test_model_loads():
 
     pipeline = sio.load(MODEL_PATH, trusted=TRUSTED_TYPES)
     assert pipeline is not None, "Pipeline loaded as None."
-    assert isinstance(pipeline, Pipeline), (
-        f"Expected sklearn Pipeline, got {type(pipeline)}"
-    )
+    assert isinstance(
+        pipeline, Pipeline
+    ), f"Expected sklearn Pipeline, got {type(pipeline)}"
 
 
 # ─────────────────────────────────────────────
@@ -91,9 +91,9 @@ def test_prediction_output():
     prediction = pipeline.predict(sample)
 
     assert len(prediction) == 1, f"Expected 1 prediction, got {len(prediction)}"
-    assert prediction[0] in VALID_DRUGS, (
-        f"Predicted drug '{prediction[0]}' is not in valid drug set {VALID_DRUGS}"
-    )
+    assert (
+        prediction[0] in VALID_DRUGS
+    ), f"Predicted drug '{prediction[0]}' is not in valid drug set {VALID_DRUGS}"
 
 
 # ─────────────────────────────────────────────
@@ -112,13 +112,13 @@ def test_prediction_shape():
     ]
     predictions = pipeline.predict(samples)
 
-    assert len(predictions) == len(samples), (
-        f"Expected {len(samples)} predictions, got {len(predictions)}"
-    )
+    assert len(predictions) == len(
+        samples
+    ), f"Expected {len(samples)} predictions, got {len(predictions)}"
     for pred in predictions:
-        assert pred in VALID_DRUGS, (
-            f"Predicted drug '{pred}' is not in valid drug set {VALID_DRUGS}"
-        )
+        assert (
+            pred in VALID_DRUGS
+        ), f"Predicted drug '{pred}' is not in valid drug set {VALID_DRUGS}"
 
 
 # ─────────────────────────────────────────────
@@ -126,22 +126,24 @@ def test_prediction_shape():
 # ─────────────────────────────────────────────
 def test_api_health_endpoint():
     """Assert that the FastAPI /health endpoint returns HTTP 200 with status 'ok'."""
-    import api.main as api_module
     from fastapi.testclient import TestClient
+
+    import api.main as api_module
 
     # Patch the model path to the absolute path before the app loads it
     api_module.MODEL_PATH = MODEL_PATH
     api_module.pipeline = None  # force reload
 
     import skops.io as sio
+
     api_module.pipeline = sio.load(MODEL_PATH, trusted=TRUSTED_TYPES)
 
     client = TestClient(api_module.app)
     response = client.get("/health")
 
-    assert response.status_code == 200, (
-        f"Health endpoint returned {response.status_code}, expected 200"
-    )
+    assert (
+        response.status_code == 200
+    ), f"Health endpoint returned {response.status_code}, expected 200"
     data = response.json()
     assert data["status"] == "ok", f"Expected status 'ok', got '{data['status']}'"
 
@@ -151,12 +153,14 @@ def test_api_health_endpoint():
 # ─────────────────────────────────────────────
 def test_api_predict_endpoint():
     """Assert that the FastAPI /predict endpoint returns a valid drug prediction."""
-    import api.main as api_module
     from fastapi.testclient import TestClient
+
+    import api.main as api_module
 
     # Ensure pipeline is loaded with absolute path
     if api_module.pipeline is None:
         import skops.io as sio
+
         api_module.pipeline = sio.load(MODEL_PATH, trusted=TRUSTED_TYPES)
 
     client = TestClient(api_module.app)
@@ -169,11 +173,11 @@ def test_api_predict_endpoint():
     }
     response = client.post("/predict", json=payload)
 
-    assert response.status_code == 200, (
-        f"Predict endpoint returned {response.status_code}: {response.text}"
-    )
+    assert (
+        response.status_code == 200
+    ), f"Predict endpoint returned {response.status_code}: {response.text}"
     data = response.json()
     assert "predicted_drug" in data, "Response missing 'predicted_drug' field"
-    assert data["predicted_drug"] in VALID_DRUGS, (
-        f"Predicted drug '{data['predicted_drug']}' not in valid drug set {VALID_DRUGS}"
-    )
+    assert (
+        data["predicted_drug"] in VALID_DRUGS
+    ), f"Predicted drug '{data['predicted_drug']}' not in valid drug set {VALID_DRUGS}"

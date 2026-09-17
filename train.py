@@ -20,8 +20,6 @@ from pathlib import Path
 
 import matplotlib
 import matplotlib.pyplot as plt
-import numpy as np
-import pandas as pd
 import skops.io as sio
 from sklearn.metrics import ConfusionMatrixDisplay, confusion_matrix
 from sklearn.model_selection import train_test_split
@@ -31,7 +29,11 @@ from sklearn.pipeline import Pipeline
 _PROJECT_ROOT = Path(__file__).parent
 sys.path.insert(0, str(_PROJECT_ROOT))
 
-from src.champion_selection import NoValidChampionError, format_leaderboard, select_champion
+from src.champion_selection import (
+    NoValidChampionError,
+    format_leaderboard,
+    select_champion,
+)
 from src.config import load_config
 from src.data_validation import load_and_validate
 from src.evaluate import train_and_evaluate
@@ -67,14 +69,18 @@ def main() -> None:
     # Step 1: Load Configuration & Tracking
     # -------------------------------------------------------------------------
     cfg = load_config(args.config)
-    print(f"[1/8] Configuration loaded from: {args.config or 'configs/model_config.yaml'}")
+    print(
+        f"[1/8] Configuration loaded from: {args.config or 'configs/model_config.yaml'}"
+    )
 
     mlflow_enabled = cfg.get("mlflow", {}).get("enabled", False)
     lineage = {}
     if mlflow_enabled:
         setup_mlflow(cfg)
         lineage = get_lineage_metadata(cfg)
-        print(f"      MLflow initialized (lineage: git={lineage['git_commit'][:7]}, dvc={lineage['dvc_dataset_hash'][:7]})")
+        print(
+            f"      MLflow initialized (lineage: git={lineage['git_commit'][:7]}, dvc={lineage['dvc_dataset_hash'][:7]})"
+        )
 
     # -------------------------------------------------------------------------
     # Step 2: Load & Validate Dataset
@@ -93,7 +99,9 @@ def main() -> None:
     split_seed = cfg["data"]["split_random_state"]
     test_size = cfg["data"]["test_size"]
 
-    print(f"[3/8] Deterministic shuffle (seed={shuffle_seed}) and split (seed={split_seed})")
+    print(
+        f"[3/8] Deterministic shuffle (seed={shuffle_seed}) and split (seed={split_seed})"
+    )
     drug_df = drug_df.sample(frac=1, random_state=shuffle_seed).reset_index(drop=True)
 
     X = drug_df.drop(cfg["data"]["target_column"], axis=1).values
@@ -114,17 +122,24 @@ def main() -> None:
     # -------------------------------------------------------------------------
     # Step 5: Model Competition — CV + Test Evaluation
     # -------------------------------------------------------------------------
-    print(f"[5/8] Running model competition ({cfg['data']['cv_folds']}-fold CV + test eval)...")
+    print(
+        f"[5/8] Running model competition ({cfg['data']['cv_folds']}-fold CV + test eval)..."
+    )
     all_results: list[dict] = []
 
     for name, estimator in candidates.items():
         preprocessor = build_preprocessor(cfg)
-        pipeline = Pipeline([
-            ("preprocessing", preprocessor),
-            ("model", estimator),
-        ])
-        model_params = {k: v for k, v in cfg["models"][name]["params"].items()
-                        if not k.startswith("#")}
+        pipeline = Pipeline(
+            [
+                ("preprocessing", preprocessor),
+                ("model", estimator),
+            ]
+        )
+        model_params = {
+            k: v
+            for k, v in cfg["models"][name]["params"].items()
+            if not k.startswith("#")
+        }
         print(f"      Training: {name}...")
         result = train_and_evaluate(
             pipeline, X_train, y_train, X_test, y_test, cfg, name, model_params
@@ -144,8 +159,9 @@ def main() -> None:
     # -------------------------------------------------------------------------
     print("[6/8] Selecting champion via quality gate + primary metric ranking...")
     # Separate serializable results from pipeline objects
-    serializable_results = [{k: v for k, v in r.items()
-                             if not k.startswith("_")} for r in all_results]
+    serializable_results = [
+        {k: v for k, v in r.items() if not k.startswith("_")} for r in all_results
+    ]
     pipeline_map = {r["model_name"]: r["_pipeline"] for r in all_results}
 
     try:
@@ -158,8 +174,12 @@ def main() -> None:
     print(f"      Champion: {champion_result['model_name']}")
 
     # Compute failing candidates (those not in passing list)
-    passing_names = {champion_result["model_name"]} | {c["model_name"] for c in challengers}
-    failing_results = [r for r in serializable_results if r["model_name"] not in passing_names]
+    passing_names = {champion_result["model_name"]} | {
+        c["model_name"] for c in challengers
+    }
+    failing_results = [
+        r for r in serializable_results if r["model_name"] not in passing_names
+    ]
     print(format_leaderboard(champion_result, challengers, failing_results))
 
     # -------------------------------------------------------------------------
@@ -214,9 +234,11 @@ def main() -> None:
             f"Macro F1 = {round(champion_result['macro_f1'], 4)}, "
             f"Macro Recall = {round(champion_result['macro_recall'], 4)}\n"
         )
-        fh.write(f"CV Macro F1 = {round(champion_result.get('cv_macro_f1_mean', 0), 4)} "
-                 f"+/- {round(champion_result.get('cv_macro_f1_std', 0), 4)}\n")
-        fh.write(f"\nAll Candidates:\n")
+        fh.write(
+            f"CV Macro F1 = {round(champion_result.get('cv_macro_f1_mean', 0), 4)} "
+            f"+/- {round(champion_result.get('cv_macro_f1_std', 0), 4)}\n"
+        )
+        fh.write("\nAll Candidates:\n")
         for r in serializable_results:
             fh.write(
                 f"  {r['model_name']}: acc={r['accuracy']:.4f} "
@@ -281,7 +303,12 @@ def main() -> None:
     # --- Log Champion to MLflow ---
     if mlflow_enabled:
         champ_run_id = log_champion_run(
-            champion_result, challengers, failing_results, champion_pipeline, cfg, lineage
+            champion_result,
+            challengers,
+            failing_results,
+            champion_pipeline,
+            cfg,
+            lineage,
         )
         print(f"      MLflow champion logged:   run_id={champ_run_id[:8]}")
 

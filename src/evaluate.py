@@ -41,9 +41,15 @@ def evaluate_on_test(
     return {
         "accuracy": float(accuracy_score(y_test, preds)),
         "macro_f1": float(f1_score(y_test, preds, average="macro", zero_division=0)),
-        "weighted_f1": float(f1_score(y_test, preds, average="weighted", zero_division=0)),
-        "macro_precision": float(precision_score(y_test, preds, average="macro", zero_division=0)),
-        "macro_recall": float(recall_score(y_test, preds, average="macro", zero_division=0)),
+        "weighted_f1": float(
+            f1_score(y_test, preds, average="weighted", zero_division=0)
+        ),
+        "macro_precision": float(
+            precision_score(y_test, preds, average="macro", zero_division=0)
+        ),
+        "macro_recall": float(
+            recall_score(y_test, preds, average="macro", zero_division=0)
+        ),
     }
 
 

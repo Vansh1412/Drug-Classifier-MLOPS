@@ -16,8 +16,7 @@ from pathlib import Path
 from typing import Any
 
 import pandas as pd
-import pandera as pa
-from pandera import Column, DataFrameSchema, Check
+from pandera import Check, Column, DataFrameSchema
 
 
 def build_schema(cfg: dict[str, Any]) -> DataFrameSchema:
@@ -36,52 +35,65 @@ def build_schema(cfg: dict[str, Any]) -> DataFrameSchema:
             "Age": Column(
                 dtype=int,
                 checks=[
-                    Check.greater_than_or_equal_to(v["age_min"],
-                        error=f"Age must be >= {v['age_min']}"),
-                    Check.less_than_or_equal_to(v["age_max"],
-                        error=f"Age must be <= {v['age_max']}"),
+                    Check.greater_than_or_equal_to(
+                        v["age_min"], error=f"Age must be >= {v['age_min']}"
+                    ),
+                    Check.less_than_or_equal_to(
+                        v["age_max"], error=f"Age must be <= {v['age_max']}"
+                    ),
                 ],
                 nullable=False,
                 description="Patient age in years",
             ),
             "Sex": Column(
                 dtype=str,
-                checks=Check.isin(v["sex_categories"],
-                    error=f"Sex must be one of {v['sex_categories']}"),
+                checks=Check.isin(
+                    v["sex_categories"],
+                    error=f"Sex must be one of {v['sex_categories']}",
+                ),
                 nullable=False,
                 description="Patient biological sex",
             ),
             "BP": Column(
                 dtype=str,
-                checks=Check.isin(v["bp_categories"],
-                    error=f"BP must be one of {v['bp_categories']}"),
+                checks=Check.isin(
+                    v["bp_categories"], error=f"BP must be one of {v['bp_categories']}"
+                ),
                 nullable=False,
                 description="Blood pressure level",
             ),
             "Cholesterol": Column(
                 dtype=str,
-                checks=Check.isin(v["cholesterol_categories"],
-                    error=f"Cholesterol must be one of {v['cholesterol_categories']}"),
+                checks=Check.isin(
+                    v["cholesterol_categories"],
+                    error=f"Cholesterol must be one of {v['cholesterol_categories']}",
+                ),
                 nullable=False,
                 description="Cholesterol level",
             ),
             "Na_to_K": Column(
                 dtype=float,
                 checks=[
-                    Check.greater_than_or_equal_to(v["na_to_k_min"],
-                        error=f"Na_to_K must be >= {v['na_to_k_min']}"),
-                    Check.less_than_or_equal_to(v["na_to_k_max"],
-                        error=f"Na_to_K must be <= {v['na_to_k_max']}"),
-                    Check(lambda s: s.apply(lambda x: x == x and x != float("inf")),
-                        error="Na_to_K must be finite and non-NaN"),
+                    Check.greater_than_or_equal_to(
+                        v["na_to_k_min"], error=f"Na_to_K must be >= {v['na_to_k_min']}"
+                    ),
+                    Check.less_than_or_equal_to(
+                        v["na_to_k_max"], error=f"Na_to_K must be <= {v['na_to_k_max']}"
+                    ),
+                    Check(
+                        lambda s: s.apply(lambda x: x == x and x != float("inf")),
+                        error="Na_to_K must be finite and non-NaN",
+                    ),
                 ],
                 nullable=False,
                 description="Sodium to potassium ratio in blood",
             ),
             "Drug": Column(
                 dtype=str,
-                checks=Check.isin(v["valid_drug_classes"],
-                    error=f"Drug must be one of {v['valid_drug_classes']}"),
+                checks=Check.isin(
+                    v["valid_drug_classes"],
+                    error=f"Drug must be one of {v['valid_drug_classes']}",
+                ),
                 nullable=False,
                 description="Recommended drug class (target label)",
             ),

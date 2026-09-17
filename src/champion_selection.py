@@ -17,6 +17,7 @@ from typing import Any
 
 class NoValidChampionError(ValueError):
     """Raised when no model candidate passes the quality gate thresholds."""
+
     pass
 
 

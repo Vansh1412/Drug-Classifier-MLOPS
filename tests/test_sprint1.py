@@ -10,7 +10,6 @@ Covers:
 """
 
 import json
-import os
 import sys
 from pathlib import Path
 
@@ -29,9 +28,9 @@ from src.champion_selection import (
     format_leaderboard,
     select_champion,
 )
-from src.config import get_trusted_types, load_config
-from src.data_validation import build_schema, load_and_validate, validate_dataset
-from src.evaluate import evaluate_on_test, train_and_evaluate
+from src.config import load_config
+from src.data_validation import load_and_validate, validate_dataset
+from src.evaluate import train_and_evaluate
 from src.model_registry import build_model_candidates
 from src.preprocessing import build_preprocessor
 
@@ -137,8 +136,12 @@ class TestDeterministicSplitting:
         X = raw_df.drop(target, axis=1).values
         y = raw_df[target].values
 
-        X_tr1, _, _, _ = train_test_split(X, y, test_size=0.3, random_state=125, stratify=y)
-        X_tr2, _, _, _ = train_test_split(X, y, test_size=0.3, random_state=999, stratify=y)
+        X_tr1, _, _, _ = train_test_split(
+            X, y, test_size=0.3, random_state=125, stratify=y
+        )
+        X_tr2, _, _, _ = train_test_split(
+            X, y, test_size=0.3, random_state=999, stratify=y
+        )
 
         assert not np.array_equal(X_tr1, X_tr2)
 
@@ -158,7 +161,9 @@ class TestModelRegistry:
 
     def test_unknown_model_class_raises_key_error(self, config):
         """Assert that unmapped model classes raise KeyError."""
-        bad_config = {"models": {"unknown": {"class": "NonExistentModel", "params": {}}}}
+        bad_config = {
+            "models": {"unknown": {"class": "NonExistentModel", "params": {}}}
+        }
         with pytest.raises(KeyError):
             build_model_candidates(bad_config)
 
@@ -173,16 +178,22 @@ class TestModelRegistry:
         sample = [[30, "M", "HIGH", "NORMAL", 15.4]]
 
         for name, model in candidates.items():
-            pipeline = Pipeline([
-                ("preprocessor", build_preprocessor(config)),
-                ("model", model),
-            ])
+            pipeline = Pipeline(
+                [
+                    ("preprocessor", build_preprocessor(config)),
+                    ("model", model),
+                ]
+            )
             pipeline.fit(X, y)
             pred = pipeline.predict(sample)
 
             assert len(pred) == 1
-            assert isinstance(pred[0], str), f"{name} returned non-string: {type(pred[0])}"
-            assert pred[0] in valid_drugs, f"{name} returned unexpected label: {pred[0]}"
+            assert isinstance(
+                pred[0], str
+            ), f"{name} returned non-string: {type(pred[0])}"
+            assert (
+                pred[0] in valid_drugs
+            ), f"{name} returned unexpected label: {pred[0]}"
 
 
 # =============================================================================
@@ -192,9 +203,24 @@ class TestChampionSelection:
     def test_champion_selected_by_primary_metric(self, config):
         """Assert that candidate with highest primary metric among passing models is champion."""
         results = [
-            {"model_name": "modA", "accuracy": 0.85, "macro_f1": 0.80, "macro_recall": 0.75},
-            {"model_name": "modB", "accuracy": 0.90, "macro_f1": 0.95, "macro_recall": 0.88},
-            {"model_name": "modC", "accuracy": 0.88, "macro_f1": 0.86, "macro_recall": 0.80},
+            {
+                "model_name": "modA",
+                "accuracy": 0.85,
+                "macro_f1": 0.80,
+                "macro_recall": 0.75,
+            },
+            {
+                "model_name": "modB",
+                "accuracy": 0.90,
+                "macro_f1": 0.95,
+                "macro_recall": 0.88,
+            },
+            {
+                "model_name": "modC",
+                "accuracy": 0.88,
+                "macro_f1": 0.86,
+                "macro_recall": 0.80,
+            },
         ]
         champion, challengers = select_champion(results, config)
         assert champion["model_name"] == "modB"
@@ -205,9 +231,19 @@ class TestChampionSelection:
         """Assert that models below minimum threshold are excluded even if accuracy is high."""
         results = [
             # High accuracy but fails macro_f1 threshold (min 0.75)
-            {"model_name": "failing_model", "accuracy": 0.95, "macro_f1": 0.60, "macro_recall": 0.80},
+            {
+                "model_name": "failing_model",
+                "accuracy": 0.95,
+                "macro_f1": 0.60,
+                "macro_recall": 0.80,
+            },
             # Passes all thresholds
-            {"model_name": "passing_model", "accuracy": 0.85, "macro_f1": 0.82, "macro_recall": 0.75},
+            {
+                "model_name": "passing_model",
+                "accuracy": 0.85,
+                "macro_f1": 0.82,
+                "macro_recall": 0.75,
+            },
         ]
         champion, challengers = select_champion(results, config)
         assert champion["model_name"] == "passing_model"
@@ -216,8 +252,18 @@ class TestChampionSelection:
     def test_no_valid_champion_raises_error(self, config):
         """Assert that NoValidChampionError is raised if all models fail the quality gate."""
         results = [
-            {"model_name": "bad1", "accuracy": 0.50, "macro_f1": 0.40, "macro_recall": 0.40},
-            {"model_name": "bad2", "accuracy": 0.60, "macro_f1": 0.55, "macro_recall": 0.50},
+            {
+                "model_name": "bad1",
+                "accuracy": 0.50,
+                "macro_f1": 0.40,
+                "macro_recall": 0.40,
+            },
+            {
+                "model_name": "bad2",
+                "accuracy": 0.60,
+                "macro_f1": 0.55,
+                "macro_recall": 0.50,
+            },
         ]
         with pytest.raises(NoValidChampionError) as excinfo:
             select_champion(results, config)
@@ -225,9 +271,28 @@ class TestChampionSelection:
 
     def test_leaderboard_formatting(self):
         """Assert that format_leaderboard creates a readable summary."""
-        champ = {"model_name": "m1", "accuracy": 0.95, "macro_f1": 0.92, "macro_recall": 0.90}
-        chal = [{"model_name": "m2", "accuracy": 0.85, "macro_f1": 0.80, "macro_recall": 0.78}]
-        failing = [{"model_name": "m3", "accuracy": 0.50, "macro_f1": 0.40, "macro_recall": 0.40}]
+        champ = {
+            "model_name": "m1",
+            "accuracy": 0.95,
+            "macro_f1": 0.92,
+            "macro_recall": 0.90,
+        }
+        chal = [
+            {
+                "model_name": "m2",
+                "accuracy": 0.85,
+                "macro_f1": 0.80,
+                "macro_recall": 0.78,
+            }
+        ]
+        failing = [
+            {
+                "model_name": "m3",
+                "accuracy": 0.50,
+                "macro_f1": 0.40,
+                "macro_recall": 0.40,
+            }
+        ]
 
         board = format_leaderboard(champ, chal, failing)
         assert "[CHAMPION] m1" in board
@@ -255,7 +320,13 @@ class TestMetricsPersistence:
 
         # Check champion metrics
         champ = data["champion"]
-        for key in ["model_name", "accuracy", "macro_f1", "macro_recall", "quality_gate"]:
+        for key in [
+            "model_name",
+            "accuracy",
+            "macro_f1",
+            "macro_recall",
+            "quality_gate",
+        ]:
             assert key in champ, f"Champion metric missing: {key}"
 
         # Check all candidates list
@@ -300,12 +371,21 @@ class TestReproducibility:
             )
             model_cfg = config["models"]["random_forest"]
             candidates = build_model_candidates(config)
-            pipe = Pipeline([
-                ("preprocessor", build_preprocessor(config)),
-                ("model", candidates["random_forest"]),
-            ])
+            pipe = Pipeline(
+                [
+                    ("preprocessor", build_preprocessor(config)),
+                    ("model", candidates["random_forest"]),
+                ]
+            )
             return train_and_evaluate(
-                pipe, X_train, y_train, X_test, y_test, config, "random_forest", model_cfg["params"]
+                pipe,
+                X_train,
+                y_train,
+                X_test,
+                y_test,
+                config,
+                "random_forest",
+                model_cfg["params"],
             )
 
         res1 = run_pipeline()
