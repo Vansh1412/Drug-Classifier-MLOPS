@@ -8,9 +8,10 @@ from typing import Any, Literal
 import pandas as pd
 import skops.io as sio
 import uvicorn
-from fastapi import FastAPI, HTTPException, Request, Response
+from fastapi import Depends, FastAPI, HTTPException, Request, Response, Security
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
+from fastapi.security.api_key import APIKeyHeader
 from pydantic import BaseModel, Field
 from sklearn.exceptions import InconsistentVersionWarning
 
@@ -19,7 +20,9 @@ from src.explainability import (
     MEDICAL_EXPLANATION_DISCLAIMER,
     ModelExplainerService,
 )
+from src.model_registry import get_registry
 from src.monitoring import get_monitor
+from src.retraining import get_orchestrator
 
 warnings.filterwarnings("ignore", category=InconsistentVersionWarning)
 logger = logging.getLogger("api.main")
@@ -89,6 +92,40 @@ try:
 except Exception as err:
     logger.warning(f"Initial model loading failed: {err}")
     pipeline = None
+
+
+def reload_model_pipeline() -> None:
+    """Reload active model pipeline into memory after a promotion or rollback event."""
+    global pipeline, _explainer_service, _last_pipeline_instance
+    try:
+        if os.path.exists(MODEL_PATH):
+            pipeline = sio.load(MODEL_PATH, trusted=TRUSTED_TYPES)
+            _explainer_service = None
+            _last_pipeline_instance = None
+            logger.info("Successfully reloaded active model pipeline.")
+    except Exception as exc:
+        logger.error(f"Failed to reload model pipeline: {exc}")
+
+
+api_key_header_scheme = APIKeyHeader(name="X-API-Key", auto_error=False)
+
+
+def verify_admin_key(
+    api_key: str | None = Security(api_key_header_scheme),
+) -> str:
+    """Verify administrator API key for high-impact model lifecycle actions."""
+    retrain_sec = _cfg.get("retraining", {}).get("security", {})
+    env_var_name = retrain_sec.get("admin_api_key_env", "MEDMLOPS_ADMIN_API_KEY")
+    default_key = retrain_sec.get("default_admin_key", "medmlops-admin-key-sprint6")
+    expected_key = os.getenv(env_var_name, default_key)
+
+    if not api_key or api_key != expected_key:
+        raise HTTPException(
+            status_code=401,
+            detail="Unauthorized: Invalid or missing administrator API key.",
+        )
+    return api_key
+
 
 # Global explainer service cache
 _explainer_service: ModelExplainerService | None = None
@@ -183,6 +220,27 @@ class DriftEvaluationRequest(BaseModel):
         min_length=1,
         max_length=1000,
         description="Batch of patient records to evaluate for population drift against baseline (1 to 1000 items)",
+    )
+
+
+class RetrainingTriggerRequest(BaseModel):
+    report_id: str | None = Field(
+        default=None,
+        description="Optional specific report ID to certify and retrain on",
+    )
+    force: bool = Field(
+        default=False, description="Whether to bypass idempotency check"
+    )
+    auto_promote: bool = Field(
+        default=True,
+        description="Whether to automatically promote if quality gate passes",
+    )
+
+
+class RollbackRequest(BaseModel):
+    reason: str = Field(
+        default="Manual administrator rollback",
+        description="Reason for rolling back to previous champion",
     )
 
 
@@ -537,6 +595,77 @@ def get_latest_monitoring_report():
             monitor.reference_df, include_predictions=True, save_report=True
         )
     return report
+
+
+@app.post("/retraining/trigger", tags=["Lifecycle"])
+def trigger_automated_retraining(
+    request: RetrainingTriggerRequest = RetrainingTriggerRequest(),
+    _: str = Depends(verify_admin_key),
+):
+    """
+    Trigger certified model retraining workflow.
+    Requires administrator authorization via X-API-Key header.
+    """
+    try:
+        orchestrator = get_orchestrator()
+        res = orchestrator.trigger_retraining(
+            report_id=request.report_id,
+            force=request.force,
+            auto_promote=request.auto_promote,
+        )
+        if res.get("status") in ["PROMOTED", "ROLLED_BACK"]:
+            reload_model_pipeline()
+        return res
+    except Exception as exc:
+        logger.error(f"Retraining trigger failed: {exc}")
+        raise HTTPException(
+            status_code=500, detail="Automated retraining workflow failed."
+        )
+
+
+@app.get("/retraining/status", tags=["Lifecycle"])
+def get_retraining_status():
+    """
+    Retrieve current state machine status, active champion, and trigger history.
+    """
+    orchestrator = get_orchestrator()
+    return orchestrator.get_status()
+
+
+@app.get("/models/champion", tags=["Model Registry"])
+def get_active_champion_details():
+    """
+    Retrieve complete active champion metadata, lineage, and version history.
+    """
+    registry = get_registry()
+    return registry.get_manifest()
+
+
+@app.post("/models/rollback", tags=["Model Registry"])
+def rollback_to_previous_champion(
+    request: RollbackRequest = RollbackRequest(),
+    _: str = Depends(verify_admin_key),
+):
+    """
+    Rollback active model to the previously archived champion.
+    Requires administrator authorization via X-API-Key header.
+    """
+    try:
+        registry = get_registry()
+        success = registry.rollback(reason=request.reason)
+        if success:
+            reload_model_pipeline()
+            return {
+                "status": "SUCCESS",
+                "message": f"Successfully rolled back to previous champion ({request.reason})",
+                "manifest": registry.get_manifest(),
+            }
+        raise HTTPException(status_code=500, detail="Rollback failed.")
+    except RuntimeError as rerr:
+        raise HTTPException(status_code=400, detail=str(rerr))
+    except Exception as exc:
+        logger.error(f"Rollback failed: {exc}")
+        raise HTTPException(status_code=500, detail=f"Rollback failed: {str(exc)}")
 
 
 # --- Entry Point ---
