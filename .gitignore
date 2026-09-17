@@ -166,6 +166,12 @@ mlruns/
 mlruns.db
 mlartifacts/
 
-# MedMLOps-X Monitoring Reports
+# MedMLOps-X Monitoring Reports & Retraining
 monitoring/reports/*.json
 !monitoring/reports/.gitkeep
+monitoring/retraining_history.json
+Model/challengers/*
+!Model/challengers/.gitkeep
+Model/archive/*
+!Model/archive/.gitkeep
+

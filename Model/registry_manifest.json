@@ -1,0 +1,23 @@
+{
+  "active_champion": {
+    "version": "0.2.0",
+    "model_name": "xgboost",
+    "artifact_path": "Model/drug_pipeline.skops",
+    "metadata_path": "Model/model_metadata.json",
+    "promoted_at": "2026-09-17T16:24:14.534251+00:00",
+    "metrics": {
+      "accuracy": 1.0,
+      "macro_f1": 1.0,
+      "cv_macro_f1_mean": 0.9632851540616245
+    }
+  },
+  "previous_champion": null,
+  "history": [
+    {
+      "version": "0.2.0",
+      "model_name": "xgboost",
+      "action": "initial_champion",
+      "timestamp": "2026-09-17T17:10:13.044792+00:00"
+    }
+  ]
+}

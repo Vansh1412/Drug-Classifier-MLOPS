@@ -48,3 +48,6 @@ Makefile
 sprint*.md
 *.log
 monitoring/reports/*.json
+monitoring/retraining_history.json
+Model/challengers/*
+Model/archive/*
