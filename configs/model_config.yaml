@@ -153,3 +153,19 @@ mlflow:
   tracking_uri: "sqlite:///mlruns.db"
   artifact_location: "mlartifacts"
   log_models: true
+
+# ---------------------------------------------------------------------------
+# Explainability Configuration
+# ---------------------------------------------------------------------------
+explainability:
+  enabled: true
+  method: "SHAP"
+  max_features: 5
+
+# ---------------------------------------------------------------------------
+# API Configuration
+# ---------------------------------------------------------------------------
+api:
+  version: "1.1.0"
+  metrics_enabled: true
+
