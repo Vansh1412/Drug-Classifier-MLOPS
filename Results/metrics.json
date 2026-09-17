@@ -1,6 +1,6 @@
 {
-  "run_timestamp": "2026-09-17T15:37:19.620428+00:00",
-  "total_runtime_seconds": 9.0435,
+  "run_timestamp": "2026-09-17T16:24:14.534251+00:00",
+  "total_runtime_seconds": 10.6989,
   "dataset": {
     "path": "Data/drug.csv",
     "total_records": 200,
@@ -20,7 +20,7 @@
       "eval_metric": "mlogloss",
       "verbosity": 0
     },
-    "training_time_seconds": 0.0448,
+    "training_time_seconds": 0.2637,
     "cv_accuracy_mean": 0.9785714285714286,
     "cv_accuracy_std": 0.01749635530559412,
     "cv_macro_f1_mean": 0.9632851540616245,
@@ -47,7 +47,7 @@
         "random_state": 125,
         "solver": "lbfgs"
       },
-      "training_time_seconds": 0.3834,
+      "training_time_seconds": 0.3684,
       "cv_accuracy_mean": 0.9357142857142857,
       "cv_accuracy_std": 0.01428571428571428,
       "cv_macro_f1_mean": 0.8406729536258949,
@@ -67,7 +67,7 @@
         "random_state": 125,
         "n_jobs": 1
       },
-      "training_time_seconds": 0.1742,
+      "training_time_seconds": 0.1471,
       "cv_accuracy_mean": 0.9357142857142857,
       "cv_accuracy_std": 0.01428571428571428,
       "cv_macro_f1_mean": 0.8452216619981325,
@@ -87,7 +87,7 @@
         "random_state": 125,
         "n_jobs": 1
       },
-      "training_time_seconds": 0.1278,
+      "training_time_seconds": 0.1505,
       "cv_accuracy_mean": 0.9714285714285715,
       "cv_accuracy_std": 0.026726124191242425,
       "cv_macro_f1_mean": 0.9489232492997199,
@@ -109,7 +109,7 @@
         "eval_metric": "mlogloss",
         "verbosity": 0
       },
-      "training_time_seconds": 0.0448,
+      "training_time_seconds": 0.2637,
       "cv_accuracy_mean": 0.9785714285714286,
       "cv_accuracy_std": 0.01749635530559412,
       "cv_macro_f1_mean": 0.9632851540616245,

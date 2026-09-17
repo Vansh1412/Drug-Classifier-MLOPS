@@ -364,10 +364,15 @@ class ModelMonitor:
                     unseen_cats[col] = diff
 
         # Quality status
+        q_thresh = self.mon_cfg.get("thresholds", {}).get("quality", {})
+        max_null_rate = float(q_thresh.get("max_null_rate", 0.0))
+        max_out_of_range_rate = float(q_thresh.get("max_out_of_range_rate", 0.0))
+
         quality_status = "PASS"
-        has_nulls = any(rate > 0 for rate in null_rates.values())
+        has_nulls = any(rate > max_null_rate for rate in null_rates.values())
         has_range_violation = any(
-            v["violating_count"] > 0 for v in out_of_range.values()
+            v.get("violating_rate", 0.0) > max_out_of_range_rate
+            for v in out_of_range.values()
         )
 
         if unseen_cats:
@@ -488,6 +493,8 @@ class ModelMonitor:
                 confidences = [float(np.max(row)) for row in probs]
 
             # Reference predictions (using target Drug from reference dataset)
+            if "Drug" not in self.reference_df.columns:
+                return None
             ref_drug_series = self.reference_df["Drug"]
             psi_val = calculate_psi(ref_drug_series, pred_series, is_categorical=True)
 
@@ -643,9 +650,14 @@ class ModelMonitor:
         )
         dest_path = (self.reports_dir / safe_filename).resolve()
 
+        resolved_reports_dir = self.reports_dir.resolve()
         # Path traversal guard
-        if not str(dest_path).startswith(str(self.reports_dir.resolve())):
-            raise ValueError(f"Path traversal detected: {dest_path}")
+        try:
+            if not dest_path.is_relative_to(resolved_reports_dir):
+                raise ValueError(f"Path traversal detected: {dest_path}")
+        except AttributeError:  # Fallback for older python if needed
+            if not str(dest_path).startswith(str(resolved_reports_dir)):
+                raise ValueError(f"Path traversal detected: {dest_path}")
 
         with open(dest_path, "w", encoding="utf-8") as fh:
             json.dump(report, fh, indent=2)
