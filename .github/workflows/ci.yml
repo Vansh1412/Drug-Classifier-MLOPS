@@ -91,7 +91,12 @@ jobs:
           echo "Monitoring: $MON_RESP"
           echo "$MON_RESP" | grep -q '"report_id"'
 
-          echo "=== 7. Security: Non-Root User Verification ==="
+          echo "=== 7. Model Champion Registry Smoke Test ==="
+          CHAMP_RESP=$(curl -s -f http://localhost:8000/models/champion)
+          echo "Champion: $CHAMP_RESP"
+          echo "$CHAMP_RESP" | grep -q '"active_champion"'
+
+          echo "=== 8. Security: Non-Root User Verification ==="
           CONTAINER_USER=$(docker exec medmlops-container whoami)
           echo "Runtime Container User: $CONTAINER_USER"
           if [ "$CONTAINER_USER" = "root" ]; then
@@ -99,7 +104,7 @@ jobs:
             exit 1
           fi
 
-          echo "=== 8. Container Cleanup ==="
+          echo "=== 9. Container Cleanup ==="
           docker logs medmlops-container
           docker stop medmlops-container
           docker rm medmlops-container
