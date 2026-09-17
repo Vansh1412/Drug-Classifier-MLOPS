@@ -86,7 +86,12 @@ jobs:
           echo "Metrics: $METRICS_RESP"
           echo "$METRICS_RESP" | grep -q '"total_requests"'
 
-          echo "=== 6. Security: Non-Root User Verification ==="
+          echo "=== 6. Monitoring Endpoint Smoke Test ==="
+          MON_RESP=$(curl -s -f http://localhost:8000/monitoring/latest)
+          echo "Monitoring: $MON_RESP"
+          echo "$MON_RESP" | grep -q '"report_id"'
+
+          echo "=== 7. Security: Non-Root User Verification ==="
           CONTAINER_USER=$(docker exec medmlops-container whoami)
           echo "Runtime Container User: $CONTAINER_USER"
           if [ "$CONTAINER_USER" = "root" ]; then
@@ -94,7 +99,7 @@ jobs:
             exit 1
           fi
 
-          echo "=== 7. Container Cleanup ==="
+          echo "=== 8. Container Cleanup ==="
           docker logs medmlops-container
           docker stop medmlops-container
           docker rm medmlops-container
