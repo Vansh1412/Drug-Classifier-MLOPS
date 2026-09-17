@@ -9,7 +9,7 @@
     "verbosity": 0
   },
   "artifact_path": "Model/drug_pipeline.skops",
-  "training_timestamp": "2026-09-17T15:01:24.980361+00:00",
+  "training_timestamp": "2026-09-17T15:37:19.620428+00:00",
   "dataset_path": "Data/drug.csv",
   "shuffle_random_state": 125,
   "split_random_state": 125,
