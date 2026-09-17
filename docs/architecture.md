@@ -55,7 +55,9 @@
 | **Data Versioning** | `Data/drug.csv.dvc`, `dvc.yaml` | DVC dataset tracking and stage reproducibility (`dvc repro`) |
 | **Experiment Tracking** | `src/tracking.py`, `mlruns.db` | MLflow run tracking, parameter/metric logging, and model logging |
 | **Data Validation** | `src/data_validation.py` | Pandera schema enforcing clinical value ranges and datatypes |
-| **Model Registry** | `src/model_registry.py` | Factory for multi-model competition (LR, RF, ET, XGBoost) |
+| **Model Registry** | `src/model_registry.py` | Factory for competition candidates & ModelRegistry manager (atomic promote, rollback) |
+| **Model Registry Manifest** | `Model/registry_manifest.json` | Registry manifest tracking active champion, archived champion, and promotion history |
+| **Retraining Engine** | `src/retraining.py` | Automated retraining trigger, drift certifier, state machine, and dual quality gate |
 | **Preprocessing** | `src/preprocessing.py` | Shared ColumnTransformer (OrdinalEncoder + StandardScaler) |
 | **Evaluation Engine** | `src/evaluate.py` | 5-Fold Stratified CV and multi-class metrics computation |
 | **Champion Selection** | `src/champion_selection.py` | Quality gate thresholding and primary metric leaderboard |
@@ -64,13 +66,14 @@
 | **Monitoring Reports** | `monitoring/reports/` | Structured JSON drift reports with lineage metadata |
 | **API Metrics Collector** | `src/api_metrics.py` | In-memory thread-safe operational metrics and latency tracker |
 | **Pipeline Runner** | `train.py` | Deterministic end-to-end training and competition execution |
-| **Config Layer** | `configs/model_config.yaml` | Centralized hyperparams, seeds, thresholds, MLflow/SHAP/monitoring config |
-| **Model Artifact** | `Model/drug_pipeline.skops` | Serialized champion scikit-learn Pipeline using `skops` |
-| **Model Metadata** | `Model/model_metadata.json` | Metadata, hyperparameters, and evaluation records |
+| **Config Layer** | `configs/model_config.yaml` | Centralized hyperparams, seeds, thresholds, retraining/promotion config |
+| **Model Artifact** | `Model/drug_pipeline.skops` | Serialized active champion scikit-learn Pipeline using `skops` |
+| **Model Archive** | `Model/archive/` | Historical archived champion snapshots for zero-downtime rollback |
+| **Model Metadata** | `Model/model_metadata.json` | Active model metadata, hyperparameters, and evaluation records |
 | **Structured Metrics** | `Results/metrics.json` | Machine-readable metrics for all candidates |
-| **API Layer** | `api/main.py` | FastAPI production REST server (/health, /predict, /explain, /version, /metrics, /monitoring) |
+| **API Layer** | `api/main.py` | FastAPI production REST server (/health, /predict, /explain, /version, /metrics, /monitoring, /retraining, /models) |
 | **UI Layer** | `App/drug_app.py` | Gradio interface for Hugging Face Spaces |
-| **Test Suite** | `tests/` | 114 automated pytest tests covering baseline, Sprint 1, 2, 3, 4, and Sprint 5 |
+| **Test Suite** | `tests/` | 140 automated pytest tests covering baseline, Sprint 1, 2, 3, 4, 5, and Sprint 6 |
 | **Container** | `Dockerfile`, `docker-compose.yml` | Hardened multi-stage build, non-root user (appuser), active healthcheck |
 | **CI Automation** | `.github/workflows/ci.yml` | Continuous integration: black, ruff, dvc, pytest, Docker build & smoke tests |
 | **CD Automation** | `.github/workflows/cd.yml` | Branch-guarded continuous deployment to HF Spaces |
@@ -79,6 +82,7 @@
 | **Container Docs** | `docs/docker.md` | Multi-stage architecture, security controls, and CLI guide |
 | **CI/CD Docs** | `docs/ci-cd.md` | Automated quality gates, smoke testing protocol, and permissions |
 | **Monitoring Docs** | `docs/monitoring.md` | Statistical drift methodology, PSI/KS thresholds, and report schemas |
+| **Retraining Docs** | `docs/retraining.md` | Drift certification, dual quality gate, atomic promotion, and rollback guide |
 
 ## 3. Medical Safety Boundary
 

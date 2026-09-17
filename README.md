@@ -11,9 +11,12 @@ An end-to-end MLOps platform demonstrating automated data validation, determinis
 This project builds a **Drug Classification** platform predicting the appropriate medication class based on patient biomarkers (Age, Sex, Blood Pressure, Cholesterol, Na-to-K ratio). The training pipeline is fully reproducible and selects a champion model from multiple competing algorithms based on automated quality gates.
 
 **Key Features:**
+- 🔄 **Automated Retraining Engine** — Drift-certified, idempotent retraining pipeline isolating candidates in `Model/challengers/`
+- ⚖️ **Champion/Challenger Quality Gate** — Dual-gated validation enforcing absolute quality floors and non-regression against the active champion
+- 🔁 **Atomic Promotion & Rollback** — Atomic model deployment with instant archive and rollback at `/models/rollback`
 - 🔍 **SHAP Explainability** — Local feature attribution (TreeExplainer) quantifying how each biometric contributed to the prediction
 - 📊 **Operational Observability** — Live request counters, status code breakdown, latency percentiles (avg, p95), and uptime at `/metrics`
-- 🌐 **Production FastAPI Server** — Endpoints for `/health`, `/predict`, `/explain`, `/version`, and `/metrics`
+- 🌐 **Production FastAPI Server** — Endpoints for `/health`, `/predict`, `/explain`, `/version`, `/metrics`, `/monitoring`, `/retraining`, and `/models`
 - 📦 **Data & Pipeline Versioning** — DVC tracks canonical dataset hashes and pipeline DAG (`dvc repro`)
 - 🧪 **Experiment Tracking** — MLflow tracks parameters, metrics, cross-validation runs, artifacts, and champion lineage
 - 🛡️ **Data Validation** — Pandera schema enforcing value ranges, biological limits, and data types
@@ -23,8 +26,8 @@ This project builds a **Drug Classification** platform predicting the appropriat
 - 🔒 **Safe Serialization** — Skops model persistence with strict trusted type whitelisting
 - 🐳 **Hardened Containerization** — Multi-stage Docker build, non-root user (appuser UID 10001), healthcheck endpoint polling
 - 📈 **Continuous Model Monitoring** — Statistical drift detection (Kolmogorov-Smirnov, Wasserstein, PSI), data quality checks, and prediction tracking
-- ✅ **Automated Testing** — 114 pytest tests covering baseline, Sprint 1, Sprint 2, Sprint 3, Sprint 4, and Sprint 5
-- ⚙️ **CI/CD** — GitHub Actions pipeline: format → lint → DVC integrity → 114 tests → Docker build & smoke test → deploy
+- ✅ **Automated Testing** — 140 pytest tests covering baseline, Sprint 1, Sprint 2, Sprint 3, Sprint 4, Sprint 5, and Sprint 6
+- ⚙️ **CI/CD** — GitHub Actions pipeline: format → lint → DVC integrity → 140 tests → Docker build & smoke test → deploy
 
 ## Tech Stack
 
@@ -32,6 +35,7 @@ This project builds a **Drug Classification** platform predicting the appropriat
 |---|---|
 | Language | Python 3.10+ |
 | Monitoring & Drift | SciPy, NumPy, Pandera (KS-test, Wasserstein, PSI, Chi-Square) |
+| Retraining & Registry | Skops, SciPy, FastAPI, Scikit-learn, XGBoost |
 | Explainability | SHAP (TreeExplainer) |
 | API & Observability | FastAPI, Uvicorn, Pydantic, In-Memory Metrics Collector |
 | Data & Pipeline Versioning | DVC (Data Version Control) |
@@ -72,6 +76,22 @@ curl -X POST http://localhost:8000/monitoring/drift \
 
 # 7. Retrieve the latest persisted monitoring and drift report summary
 curl http://localhost:8000/monitoring/latest
+
+# 8. Inspect active model champion metadata and promotion lineage
+curl http://localhost:8000/models/champion
+
+# 9. Query current retraining engine status and trigger history
+curl http://localhost:8000/retraining/status
+
+# 10. Securely trigger drift-certified retraining (requires Admin API Key)
+curl -X POST http://localhost:8000/retraining/trigger \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: medmlops-admin-key-sprint6" \
+  -d '{"report_id": "latest", "auto_promote": true}'
+
+# 11. Securely roll back to previous champion model (requires Admin API Key)
+curl -X POST http://localhost:8000/models/rollback \
+  -H "X-API-Key: medmlops-admin-key-sprint6"
 ```
 
 ## Run Locally
@@ -89,7 +109,7 @@ dvc repro
 # Start local MLflow experiment dashboard
 mlflow ui --backend-store-uri sqlite:///mlruns.db --port 5000
 
-# Run comprehensive test suite (114 tests)
+# Run comprehensive test suite (140 tests)
 pytest -v
 
 # Start FastAPI server directly
@@ -134,6 +154,7 @@ docker compose up -d
 ## Documentation
 
 - 🏛️ [Architecture](docs/architecture.md) — End-to-end system and component design
+- 🔄 [Automated Retraining & Rollback](docs/retraining.md) — Retraining orchestrator, drift certification, quality gates, and registry promotion
 - 🐳 [Docker Architecture](docs/docker.md) — Multi-stage build, non-root user, and container hardening
 - ⚙️ [CI/CD Pipeline](docs/ci-cd.md) — GitHub Actions automated quality gates, smoke tests, and permissions
 - 🔍 [Explainability](docs/explainability.md) — SHAP TreeExplainer methodology, mapping, and interpretation
