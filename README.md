@@ -1,25 +1,27 @@
-# Drug Classifier MLOps
+# Drug Classifier MLOps (MedMLOps-X)
 
 [![CI](https://github.com/Vansh1412/Drug-Classifier-MLOPS/actions/workflows/ci.yml/badge.svg)](https://github.com/Vansh1412/Drug-Classifier-MLOPS/actions/workflows/ci.yml)
 [![CD](https://github.com/Vansh1412/Drug-Classifier-MLOPS/actions/workflows/cd.yml/badge.svg)](https://github.com/Vansh1412/Drug-Classifier-MLOPS/actions/workflows/cd.yml)
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/Vansh1412/Drug-Classifier-MLOPS/blob/main/notebook.ipynb)
 
-An end-to-end MLOps platform demonstrating automated data validation, deterministic multi-model competition, champion selection, testing, containerization, and continuous deployment.
+An end-to-end MLOps platform demonstrating automated data validation, deterministic multi-model competition, champion selection, SHAP explainability, production FastAPI serving, live observability, containerization, and continuous deployment.
 
 ## Project Description
 
 This project builds a **Drug Classification** platform predicting the appropriate medication class based on patient biomarkers (Age, Sex, Blood Pressure, Cholesterol, Na-to-K ratio). The training pipeline is fully reproducible and selects a champion model from multiple competing algorithms based on automated quality gates.
 
 **Key Features:**
+- 🔍 **SHAP Explainability** — Local feature attribution (TreeExplainer) quantifying how each biometric contributed to the prediction
+- 📊 **Operational Observability** — Live request counters, status code breakdown, latency percentiles (avg, p95), and uptime at `/metrics`
+- 🌐 **Production FastAPI Server** — Endpoints for `/health`, `/predict`, `/explain`, `/version`, and `/metrics`
 - 📦 **Data & Pipeline Versioning** — DVC tracks canonical dataset hashes and pipeline DAG (`dvc repro`)
 - 🧪 **Experiment Tracking** — MLflow tracks parameters, metrics, cross-validation runs, artifacts, and champion lineage
 - 🛡️ **Data Validation** — Pandera schema enforcing value ranges, biological limits, and data types
 - 🎲 **Deterministic ML** — Centralized seed configuration ensuring 100% reproducible splits and metrics
 - 🏆 **Model Competition** — Automated evaluation of Logistic Regression, Random Forest, ExtraTrees, and XGBoost
 - 🥇 **Champion Selection** — Quality gate thresholding (Macro F1, Accuracy, Recall) with automated champion promotion
-- 🌐 **REST API** — FastAPI server with `POST /predict` and `GET /health` endpoints
 - 🔒 **Safe Serialization** — Skops model persistence with strict trusted type whitelisting
-- ✅ **Automated Testing** — 39 pytest tests covering baseline, Sprint 1, and Sprint 2 functionality
+- ✅ **Automated Testing** — 62 pytest tests covering baseline, Sprint 1, Sprint 2, and Sprint 3 functionality
 - ⚙️ **CI/CD** — GitHub Actions pipeline: format → train → test → evaluate → deploy
 
 ## Tech Stack
@@ -27,11 +29,12 @@ This project builds a **Drug Classification** platform predicting the appropriat
 | Category | Tools |
 |---|---|
 | Language | Python 3.10+ |
+| Explainability | SHAP (TreeExplainer) |
+| API & Observability | FastAPI, Uvicorn, Pydantic, In-Memory Metrics Collector |
 | Data & Pipeline Versioning | DVC (Data Version Control) |
 | Experiment Tracking | MLflow |
 | Data Validation | Pandera |
 | ML & Competition | Scikit-learn, XGBoost, Pandas, NumPy, Skops |
-| API | FastAPI, Uvicorn, Pydantic |
 | Testing | pytest, httpx |
 | Containerization | Docker, Docker Compose |
 | CI/CD | GitHub Actions, CML (Iterative) |
@@ -40,13 +43,24 @@ This project builds a **Drug Classification** platform predicting the appropriat
 ## API Usage
 
 ```bash
-# Health check
+# 1. Health check
 curl http://localhost:8000/health
 
-# Predict drug
+# 2. Predict recommended drug (with confidence & probabilities)
 curl -X POST http://localhost:8000/predict \
   -H "Content-Type: application/json" \
   -d '{"age": 30, "sex": "M", "blood_pressure": "HIGH", "cholesterol": "NORMAL", "na_to_k_ratio": 15.4}'
+
+# 3. Explain prediction with SHAP local feature attributions
+curl -X POST http://localhost:8000/explain \
+  -H "Content-Type: application/json" \
+  -d '{"age": 30, "sex": "M", "blood_pressure": "HIGH", "cholesterol": "NORMAL", "na_to_k_ratio": 15.4}'
+
+# 4. View system, model, and data lineage version metadata
+curl http://localhost:8000/version
+
+# 5. View live API operational metrics (requests, latencies, status codes)
+curl http://localhost:8000/metrics
 ```
 
 ## Run Locally
@@ -64,7 +78,7 @@ dvc repro
 # Start local MLflow experiment dashboard
 mlflow ui --backend-store-uri sqlite:///mlruns.db --port 5000
 
-# Run comprehensive test suite (39 tests)
+# Run comprehensive test suite (62 tests)
 pytest -v
 
 # Start FastAPI server
@@ -87,9 +101,16 @@ uvicorn api.main:app --port 8000
 ## Documentation
 
 - 🏛️ [Architecture](docs/architecture.md) — End-to-end system and component design
+- 🔍 [Explainability](docs/explainability.md) — SHAP TreeExplainer methodology, mapping, and interpretation
+- 🌐 [REST API Reference](docs/api.md) — Endpoints, schemas, validation rules, and error codes
 - 🔄 [ML Pipeline](docs/ml-pipeline.md) — Validation, preprocessing, competition, and evaluation details
 - 📦 [DVC Versioning](docs/dvc.md) — Dataset tracking, hash verification, and pipeline execution
 - 🧪 [MLflow Tracking](docs/mlflow.md) — Experiment tracking, parameter logging, UI guide, and lineage
-- 🛡️ [Security](docs/security.md) — Serialization security and vulnerability scanning
+- 🛡️ [Security](docs/security.md) — Serialization security, input validation, and medical safety boundary
 - 🚢 [Deployment](docs/deployment.md) — Container and zero-downtime deployment guide
 - 🧪 [Testing](docs/testing.md) — Test taxonomy and automated test execution
+
+## Medical Safety Boundary
+
+⚠️ **Important:** MedMLOps-X is an educational machine-learning demonstration and is NOT a certified clinical diagnostic or prescribing tool. Predictions and SHAP feature attributions are generated for instructional MLOps demonstration only and must never be utilized as medical advice.
+
