@@ -41,10 +41,10 @@
                      v                         v
         FastAPI Production Serving     Experiment Registry
                      │
-        ┌────────────┴────────────┬────────────────────────┐
-        ↓                         ↓                        ↓
-  Core Inference           Explainability            Observability
- (/predict, /health)      (SHAP /explain)         (/metrics, /version)
+        ┌────────────┴────────────┬────────────────────────┬────────────────────────┐
+        ↓                         ↓                        ↓                        ↓
+  Core Inference           Explainability            Observability              Monitoring
+ (/predict, /health)      (SHAP /explain)         (/metrics, /version)      (/monitoring/drift)
 ```
 
 ## 2. Component Directory
@@ -60,15 +60,17 @@
 | **Evaluation Engine** | `src/evaluate.py` | 5-Fold Stratified CV and multi-class metrics computation |
 | **Champion Selection** | `src/champion_selection.py` | Quality gate thresholding and primary metric leaderboard |
 | **Explainability Service** | `src/explainability.py` | SHAP TreeExplainer service and domain feature attribution mapping |
+| **Model Monitor** | `src/monitoring.py` | Statistical drift engine (KS test, Wasserstein, PSI, Chi-Square, Pandera) |
+| **Monitoring Reports** | `monitoring/reports/` | Structured JSON drift reports with lineage metadata |
 | **API Metrics Collector** | `src/api_metrics.py` | In-memory thread-safe operational metrics and latency tracker |
 | **Pipeline Runner** | `train.py` | Deterministic end-to-end training and competition execution |
-| **Config Layer** | `configs/model_config.yaml` | Centralized hyperparams, seeds, thresholds, MLflow/SHAP config |
+| **Config Layer** | `configs/model_config.yaml` | Centralized hyperparams, seeds, thresholds, MLflow/SHAP/monitoring config |
 | **Model Artifact** | `Model/drug_pipeline.skops` | Serialized champion scikit-learn Pipeline using `skops` |
 | **Model Metadata** | `Model/model_metadata.json` | Metadata, hyperparameters, and evaluation records |
 | **Structured Metrics** | `Results/metrics.json` | Machine-readable metrics for all candidates |
-| **API Layer** | `api/main.py` | FastAPI production REST server (/health, /predict, /explain, /version, /metrics) |
+| **API Layer** | `api/main.py` | FastAPI production REST server (/health, /predict, /explain, /version, /metrics, /monitoring) |
 | **UI Layer** | `App/drug_app.py` | Gradio interface for Hugging Face Spaces |
-| **Test Suite** | `tests/` | 81 automated pytest tests covering baseline, Sprint 1, 2, 3, and Sprint 4 |
+| **Test Suite** | `tests/` | 114 automated pytest tests covering baseline, Sprint 1, 2, 3, 4, and Sprint 5 |
 | **Container** | `Dockerfile`, `docker-compose.yml` | Hardened multi-stage build, non-root user (appuser), active healthcheck |
 | **CI Automation** | `.github/workflows/ci.yml` | Continuous integration: black, ruff, dvc, pytest, Docker build & smoke tests |
 | **CD Automation** | `.github/workflows/cd.yml` | Branch-guarded continuous deployment to HF Spaces |
@@ -76,6 +78,7 @@
 | **Tool Config** | `pyproject.toml` | Unified configuration for pytest, black, ruff, coverage |
 | **Container Docs** | `docs/docker.md` | Multi-stage architecture, security controls, and CLI guide |
 | **CI/CD Docs** | `docs/ci-cd.md` | Automated quality gates, smoke testing protocol, and permissions |
+| **Monitoring Docs** | `docs/monitoring.md` | Statistical drift methodology, PSI/KS thresholds, and report schemas |
 
 ## 3. Medical Safety Boundary
 

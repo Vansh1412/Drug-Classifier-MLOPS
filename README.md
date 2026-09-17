@@ -22,14 +22,16 @@ This project builds a **Drug Classification** platform predicting the appropriat
 - 🥇 **Champion Selection** — Quality gate thresholding (Macro F1, Accuracy, Recall) with automated champion promotion
 - 🔒 **Safe Serialization** — Skops model persistence with strict trusted type whitelisting
 - 🐳 **Hardened Containerization** — Multi-stage Docker build, non-root user (appuser UID 10001), healthcheck endpoint polling
-- ✅ **Automated Testing** — 81 pytest tests covering baseline, Sprint 1, Sprint 2, Sprint 3, and Sprint 4
-- ⚙️ **CI/CD** — GitHub Actions pipeline: format → lint → DVC integrity → 81 tests → Docker build & smoke test → deploy
+- 📈 **Continuous Model Monitoring** — Statistical drift detection (Kolmogorov-Smirnov, Wasserstein, PSI), data quality checks, and prediction tracking
+- ✅ **Automated Testing** — 114 pytest tests covering baseline, Sprint 1, Sprint 2, Sprint 3, Sprint 4, and Sprint 5
+- ⚙️ **CI/CD** — GitHub Actions pipeline: format → lint → DVC integrity → 114 tests → Docker build & smoke test → deploy
 
 ## Tech Stack
 
 | Category | Tools |
 |---|---|
 | Language | Python 3.10+ |
+| Monitoring & Drift | SciPy, NumPy, Pandera (KS-test, Wasserstein, PSI, Chi-Square) |
 | Explainability | SHAP (TreeExplainer) |
 | API & Observability | FastAPI, Uvicorn, Pydantic, In-Memory Metrics Collector |
 | Data & Pipeline Versioning | DVC (Data Version Control) |
@@ -62,6 +64,14 @@ curl http://localhost:8000/version
 
 # 5. View live API operational metrics (requests, latencies, status codes)
 curl http://localhost:8000/metrics
+
+# 6. Evaluate batch of patient records for population data and prediction drift
+curl -X POST http://localhost:8000/monitoring/drift \
+  -H "Content-Type: application/json" \
+  -d '{"records": [{"age": 30, "sex": "M", "blood_pressure": "HIGH", "cholesterol": "NORMAL", "na_to_k_ratio": 15.4}]}'
+
+# 7. Retrieve the latest persisted monitoring and drift report summary
+curl http://localhost:8000/monitoring/latest
 ```
 
 ## Run Locally
@@ -79,7 +89,7 @@ dvc repro
 # Start local MLflow experiment dashboard
 mlflow ui --backend-store-uri sqlite:///mlruns.db --port 5000
 
-# Run comprehensive test suite (81 tests)
+# Run comprehensive test suite (114 tests)
 pytest -v
 
 # Start FastAPI server directly
@@ -133,6 +143,7 @@ docker compose up -d
 - 🧪 [MLflow Tracking](docs/mlflow.md) — Experiment tracking, parameter logging, UI guide, and lineage
 - 🛡️ [Security](docs/security.md) — Serialization security, input validation, and medical safety boundary
 - 🚢 [Deployment](docs/deployment.md) — Container and zero-downtime deployment guide
+- 📈 [Continuous Monitoring](docs/monitoring.md) — Statistical drift detection, PSI/KS methodology, thresholds, and report schemas
 - 🧪 [Testing](docs/testing.md) — Test taxonomy and automated test execution
 
 ## Medical Safety Boundary
