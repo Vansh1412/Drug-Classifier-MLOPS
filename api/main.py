@@ -5,6 +5,7 @@ import time
 import warnings
 from typing import Any, Literal
 
+import pandas as pd
 import skops.io as sio
 import uvicorn
 from fastapi import FastAPI, HTTPException, Request, Response
@@ -18,6 +19,7 @@ from src.explainability import (
     MEDICAL_EXPLANATION_DISCLAIMER,
     ModelExplainerService,
 )
+from src.monitoring import get_monitor
 
 warnings.filterwarnings("ignore", category=InconsistentVersionWarning)
 logger = logging.getLogger("api.main")
@@ -173,6 +175,15 @@ class PatientFeatures(BaseModel):
     )
 
     model_config = {"populate_by_name": True}
+
+
+class DriftEvaluationRequest(BaseModel):
+    records: list[PatientFeatures] = Field(
+        ...,
+        min_length=1,
+        max_length=1000,
+        description="Batch of patient records to evaluate for population drift against baseline (1 to 1000 items)",
+    )
 
 
 class PredictionResponse(BaseModel):
@@ -482,6 +493,50 @@ def get_operational_metrics():
     latency statistics (average, p95), and uptime.
     """
     return metrics_collector.get_metrics()
+
+
+@app.post("/monitoring/drift", tags=["Monitoring"])
+def evaluate_drift(request_data: DriftEvaluationRequest):
+    """
+    Evaluate a batch of patient records for population data drift, prediction drift,
+    and schema/data quality anomalies against reference baseline.
+    """
+    try:
+        data_dicts = [
+            {
+                "Age": p.age,
+                "Sex": p.sex,
+                "BP": p.blood_pressure,
+                "Cholesterol": p.cholesterol,
+                "Na_to_K": p.na_to_k_ratio,
+            }
+            for p in request_data.records
+        ]
+        current_df = pd.DataFrame(data_dicts)
+        monitor = get_monitor()
+        report = monitor.compute_drift(
+            current_df, include_predictions=True, save_report=True
+        )
+        return report
+    except Exception as exc:
+        logger.error(f"Drift monitoring evaluation failed: {exc}")
+        raise HTTPException(
+            status_code=500, detail="Drift monitoring computation failed."
+        )
+
+
+@app.get("/monitoring/latest", tags=["Monitoring"])
+def get_latest_monitoring_report():
+    """
+    Retrieve the most recently computed and persisted monitoring report.
+    """
+    monitor = get_monitor()
+    report = monitor.get_latest_report()
+    if report is None:
+        report = monitor.compute_drift(
+            monitor.reference_df, include_predictions=True, save_report=True
+        )
+    return report
 
 
 # --- Entry Point ---

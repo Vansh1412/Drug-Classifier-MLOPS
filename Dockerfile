@@ -40,6 +40,8 @@ COPY --chown=appuser:appgroup api/ ./api/
 COPY --chown=appuser:appgroup src/ ./src/
 COPY --chown=appuser:appgroup Model/ ./Model/
 COPY --chown=appuser:appgroup configs/ ./configs/
+COPY --chown=appuser:appgroup Data/ ./Data/
+COPY --chown=appuser:appgroup monitoring/ ./monitoring/
 
 # Expose service port and switch to unprivileged user
 EXPOSE 8000
