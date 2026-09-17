@@ -5,12 +5,15 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    image: medmlops-x:latest
     container_name: drug-classifier-api
     ports:
       - "8000:8000"
     restart: unless-stopped
     environment:
       - PYTHONUNBUFFERED=1
+      - PYTHONDONTWRITEBYTECODE=1
+      - PORT=8000
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
       interval: 30s
