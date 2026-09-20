@@ -247,4 +247,57 @@ reviews:
     stratify_column: "rating"
     group_column: "review_clean_hash"
     temporal_threshold_date: "2017-01-01"
+  nlp_competition:
+    target:
+      name: "sentiment_class"
+      rating_col: "rating"
+      bins:
+        low: [1, 4]
+        neutral: [5, 7]
+        high: [8, 10]
+      classes:
+        - "low"
+        - "neutral"
+        - "high"
+    tfidf:
+      ngram_range: [1, 2]
+      min_df: 3
+      max_df: 0.90
+      sublinear_tf: true
+      max_features: 10000
+    models:
+      logistic_regression:
+        C: 1.0
+        max_iter: 1000
+        solver: "lbfgs"
+        class_weight: "balanced"
+        random_state: 125
+      linear_svm:
+        C: 1.0
+        max_iter: 2000
+        class_weight: "balanced"
+        random_state: 125
+      naive_bayes:
+        alpha: 0.5
+    cv:
+      folds: 5
+      random_state: 125
+      group_column: "review_clean_hash"
+      stratify_column: "sentiment_class"
+      primary_metric: "macro_f1"
+    quality_gate:
+      min_macro_f1: 0.70
+      min_accuracy: 0.70
+      min_class_recall: 0.40
+    mlflow:
+      experiment_name: "MedMLOps-X-NLP-Drug-Review"
+      tracking_uri: "sqlite:///mlruns.db"
+      artifact_location: "mlartifacts"
+      log_models: true
+    artifacts:
+      champion_dir: "Model/nlp/champion"
+      pipeline_path: "Model/nlp/champion/nlp_champion_pipeline.skops"
+      metadata_path: "Model/nlp/nlp_model_metadata.json"
+      report_path: "Results/nlp_competition_report.json"
+      metrics_path: "Results/nlp_metrics.json"
 
