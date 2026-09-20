@@ -51,8 +51,12 @@
 
 | Component | Path | Responsibility |
 |---|---|---|
-| **Data Layer** | `Data/drug.csv` | Canonical patient tabular dataset (~200 records) |
-| **Data Versioning** | `Data/drug.csv.dvc`, `dvc.yaml` | DVC dataset tracking and stage reproducibility (`dvc repro`) |
+| **Data Layer (Structured)** | `Data/drug.csv` | Canonical patient tabular dataset (~200 records) |
+| **Data Layer (Reviews NLP)** | `Data/reviews/drugsComTest_raw.csv` | Raw patient review dataset (~53,766 records) |
+| **Processed Reviews** | `Data/reviews/processed/` | Preprocessed review parquet dataset with length features |
+| **Review Validation** | `src/nlp_validation.py` | Pandera schema and quality validation for review dataset |
+| **Review Preprocessing** | `src/nlp_preprocessing.py` | HTML decoding, text cleaning, and leakage-safe splitting |
+| **Data Versioning** | `Data/drug.csv.dvc`, `Data/reviews/drugsComTest_raw.csv.dvc`, `dvc.yaml` | DVC dataset tracking and stage reproducibility (`dvc repro`) |
 | **Experiment Tracking** | `src/tracking.py`, `mlruns.db` | MLflow run tracking, parameter/metric logging, and model logging |
 | **Data Validation** | `src/data_validation.py` | Pandera schema enforcing clinical value ranges and datatypes |
 | **Model Registry** | `src/model_registry.py` | Factory for competition candidates & ModelRegistry manager (atomic promote, rollback) |
@@ -66,14 +70,14 @@
 | **Monitoring Reports** | `monitoring/reports/` | Structured JSON drift reports with lineage metadata |
 | **API Metrics Collector** | `src/api_metrics.py` | In-memory thread-safe operational metrics and latency tracker |
 | **Pipeline Runner** | `train.py` | Deterministic end-to-end training and competition execution |
-| **Config Layer** | `configs/model_config.yaml` | Centralized hyperparams, seeds, thresholds, retraining/promotion config |
+| **Config Layer** | `configs/model_config.yaml` | Centralized hyperparams, seeds, thresholds, retraining/promotion, and review configs |
 | **Model Artifact** | `Model/drug_pipeline.skops` | Serialized active champion scikit-learn Pipeline using `skops` |
 | **Model Archive** | `Model/archive/` | Historical archived champion snapshots for zero-downtime rollback |
 | **Model Metadata** | `Model/model_metadata.json` | Active model metadata, hyperparameters, and evaluation records |
 | **Structured Metrics** | `Results/metrics.json` | Machine-readable metrics for all candidates |
 | **API Layer** | `api/main.py` | FastAPI production REST server (/health, /predict, /explain, /version, /metrics, /monitoring, /retraining, /models) |
 | **UI Layer** | `App/drug_app.py` | Gradio interface for Hugging Face Spaces |
-| **Test Suite** | `tests/` | 140 automated pytest tests covering baseline, Sprint 1, 2, 3, 4, 5, and Sprint 6 |
+| **Test Suite** | `tests/` | 162 automated pytest tests covering baseline, Sprint 1, 2, 3, 4, 5, 6, and Sprint 7 |
 | **Container** | `Dockerfile`, `docker-compose.yml` | Hardened multi-stage build, non-root user (appuser), active healthcheck |
 | **CI Automation** | `.github/workflows/ci.yml` | Continuous integration: black, ruff, dvc, pytest, Docker build & smoke tests |
 | **CD Automation** | `.github/workflows/cd.yml` | Branch-guarded continuous deployment to HF Spaces |

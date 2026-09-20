@@ -11,6 +11,7 @@ An end-to-end MLOps platform demonstrating automated data validation, determinis
 This project builds a **Drug Classification** platform predicting the appropriate medication class based on patient biomarkers (Age, Sex, Blood Pressure, Cholesterol, Na-to-K ratio). The training pipeline is fully reproducible and selects a champion model from multiple competing algorithms based on automated quality gates.
 
 **Key Features:**
+- 📚 **Multi-Modal Data Foundation** — Review dataset (`Data/reviews/drugsComTest_raw.csv`, 53.7K records) with Pandera validation, HTML decoding, and leakage-safe group splitting
 - 🔄 **Automated Retraining Engine** — Drift-certified, idempotent retraining pipeline isolating candidates in `Model/challengers/`
 - ⚖️ **Champion/Challenger Quality Gate** — Dual-gated validation enforcing absolute quality floors and non-regression against the active champion
 - 🔁 **Atomic Promotion & Rollback** — Atomic model deployment with instant archive and rollback at `/models/rollback`
@@ -26,8 +27,8 @@ This project builds a **Drug Classification** platform predicting the appropriat
 - 🔒 **Safe Serialization** — Skops model persistence with strict trusted type whitelisting
 - 🐳 **Hardened Containerization** — Multi-stage Docker build, non-root user (appuser UID 10001), healthcheck endpoint polling
 - 📈 **Continuous Model Monitoring** — Statistical drift detection (Kolmogorov-Smirnov, Wasserstein, PSI), data quality checks, and prediction tracking
-- ✅ **Automated Testing** — 140 pytest tests covering baseline, Sprint 1, Sprint 2, Sprint 3, Sprint 4, Sprint 5, and Sprint 6
-- ⚙️ **CI/CD** — GitHub Actions pipeline: format → lint → DVC integrity → 140 tests → Docker build & smoke test → deploy
+- ✅ **Automated Testing** — 162 pytest tests covering baseline, Sprint 1, Sprint 2, Sprint 3, Sprint 4, Sprint 5, Sprint 6, and Sprint 7
+- ⚙️ **CI/CD** — GitHub Actions pipeline: format → lint → DVC integrity → 162 tests → Docker build & smoke test → deploy
 
 ## Tech Stack
 
@@ -154,6 +155,7 @@ docker compose up -d
 ## Documentation
 
 - 🏛️ [Architecture](docs/architecture.md) — End-to-end system and component design
+- 📚 [NLP Data Foundation](docs/nlp-data-foundation.md) — Multi-modal review data profile, Pandera schema, preprocessing, and leakage defense
 - 🔄 [Automated Retraining & Rollback](docs/retraining.md) — Retraining orchestrator, drift certification, quality gates, and registry promotion
 - 🐳 [Docker Architecture](docs/docker.md) — Multi-stage build, non-root user, and container hardening
 - ⚙️ [CI/CD Pipeline](docs/ci-cd.md) — GitHub Actions automated quality gates, smoke tests, and permissions
