@@ -76,8 +76,8 @@ stages:
       size: 7754
     - path: src/nlp_validation.py
       hash: md5
-      md5: 2d175f9ef408aaabe6e675c116b59d97
-      size: 9771
+      md5: 99a28969d5aba05090e7a8ba38009bb4
+      size: 9865
   preprocess_reviews:
     cmd: python -c "from src.nlp_preprocessing import run_review_preprocessing; 
       run_review_preprocessing('Data/reviews/drugsComTest_raw.csv')"
@@ -92,8 +92,8 @@ stages:
       size: 7754
     - path: src/nlp_preprocessing.py
       hash: md5
-      md5: 79f3ee1578ff7ef17e3c016799f975ff
-      size: 12262
+      md5: fc0f2f6115374e3f47e64b7a9718b91d
+      size: 12995
     outs:
     - path: Data/reviews/processed/reviews_cleaned.parquet
       hash: md5
