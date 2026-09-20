@@ -51,3 +51,7 @@ monitoring/reports/*.json
 monitoring/retraining_history.json
 Model/challengers/*
 Model/archive/*
+
+# Multi-Modal Review Data (excluded from production serving container)
+Data/reviews/
+Data/drug_reviews/

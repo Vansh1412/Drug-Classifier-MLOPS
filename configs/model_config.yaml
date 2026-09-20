@@ -218,3 +218,33 @@ retraining:
     admin_api_key_env: "MEDMLOPS_ADMIN_API_KEY"
     default_admin_key: "medmlops-admin-key-sprint6"
 
+# ---------------------------------------------------------------------------
+# NLP / Drug Review Intelligence Configuration (Sprint 7)
+# ---------------------------------------------------------------------------
+reviews:
+  raw_data_path: "Data/reviews/drugsComTest_raw.csv"
+  processed_data_path: "Data/reviews/processed/reviews_cleaned.parquet"
+  processed_dir: "Data/reviews/processed"
+  columns:
+    - "uniqueID"
+    - "drugName"
+    - "condition"
+    - "review"
+    - "rating"
+    - "date"
+    - "usefulCount"
+  validation:
+    rating_min: 1
+    rating_max: 10
+    useful_count_min: 0
+    max_missing_condition_rate: 0.05
+    allow_missing_conditions: true
+    missing_condition_placeholder: "Unknown"
+  splitting:
+    default_strategy: "stratified_group"
+    test_size: 0.2
+    random_state: 125
+    stratify_column: "rating"
+    group_column: "review_clean_hash"
+    temporal_threshold_date: "2017-01-01"
+

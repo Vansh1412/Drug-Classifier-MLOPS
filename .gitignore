@@ -175,3 +175,7 @@ Model/challengers/*
 Model/archive/*
 !Model/archive/.gitkeep
 
+# Multi-modal reviews processed data
+Data/reviews/processed/*.parquet
+!Data/reviews/processed/.gitkeep
+
