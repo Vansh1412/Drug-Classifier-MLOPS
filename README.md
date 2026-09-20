@@ -28,8 +28,9 @@ This project builds a **Drug Classification** platform predicting the appropriat
 - 🐳 **Hardened Containerization** — Multi-stage Docker build, non-root user (appuser UID 10001), healthcheck endpoint polling
 - 📈 **Continuous Model Monitoring** — Statistical drift detection (Kolmogorov-Smirnov, Wasserstein, PSI), data quality checks, and prediction tracking
 - 🧠 **NLP Model Competition** — Leakage-safe TF-IDF pipeline evaluating Logistic Regression, Linear SVM, and Naive Bayes on patient drug reviews under strict quality gates
-- ✅ **Automated Testing** — 186 pytest tests covering baseline, Sprint 1 through Sprint 8
-- ⚙️ **CI/CD** — GitHub Actions pipeline: format → lint → DVC integrity → 186 tests → Docker build & smoke test → deploy
+- 🔍 **Patient Experience Intelligence** — Descriptive sentiment analytics, drug and condition aggregations, 8-domain clinical aspect extraction, and lexical TF-IDF similarity retrieval
+- ✅ **Automated Testing** — 211 pytest tests covering baseline, Sprint 1 through Sprint 9
+- ⚙️ **CI/CD** — GitHub Actions pipeline: format → lint → DVC integrity → 211 tests → Docker build & smoke test → deploy
 
 ## Tech Stack
 
@@ -109,13 +110,16 @@ python train.py
 # Run NLP review intelligence model competition pipeline
 python -c "from src.nlp_competition import run_nlp_competition; run_nlp_competition()"
 
+# Run patient experience intelligence analysis
+python -c "from src.patient_experience import generate_patient_experience_report; generate_patient_experience_report()"
+
 # Or reproduce via DVC pipeline
 dvc repro
 
 # Start local MLflow experiment dashboard
 mlflow ui --backend-store-uri sqlite:///mlruns.db --port 5000
 
-# Run comprehensive test suite (186 tests)
+# Run comprehensive test suite (211 tests)
 pytest -v
 
 # Start FastAPI server directly
@@ -172,6 +176,7 @@ docker compose up -d
 ## Documentation
 
 - 🏛️ [Architecture](docs/architecture.md) — End-to-end system and component design
+- 🔍 [Patient Experience Intelligence](docs/patient-experience-intelligence.md) — Descriptive sentiment, drug/condition aggregations, aspect extraction, and TF-IDF similarity
 - 🧠 [NLP Model Competition](docs/nlp-model-competition.md) — Classical NLP competition, TF-IDF, CV Macro F1, and quality gate evaluation
 - 📚 [NLP Data Foundation](docs/nlp-data-foundation.md) — Multi-modal review data profile, Pandera schema, preprocessing, and leakage defense
 - 🔄 [Automated Retraining & Rollback](docs/retraining.md) — Retraining orchestrator, drift certification, quality gates, and registry promotion
@@ -189,5 +194,5 @@ docker compose up -d
 
 ## Medical Safety Boundary
 
-⚠️ **Important:** MedMLOps-X is an educational machine-learning demonstration and is NOT a certified clinical diagnostic or prescribing tool. Predictions, patient review sentiment classifications, and SHAP feature attributions are generated for instructional MLOps demonstration only and must never be utilized as medical advice, clinical trial evidence, or prescribing decision support.
+⚠️ **Important:** MedMLOps-X is an educational machine-learning demonstration and is NOT a certified clinical diagnostic, prescribing, or treatment recommendation tool. Predictions, patient review sentiment classifications, and SHAP feature attributions are generated for instructional MLOps demonstration only and must never be utilized as medical advice, clinical trial evidence, or prescribing decision support.
 

@@ -81,7 +81,9 @@
 | **NLP Tracking** | `src/nlp_tracking.py` | Dedicated MLflow experiment tracking (`MedMLOps-X-NLP-Drug-Review`) and lineage logging |
 | **NLP Artifacts** | `Model/nlp/` | Isolated NLP champion and candidate model storage area |
 | **NLP Results** | `Results/nlp_competition_report.json`, `Results/nlp_metrics.json` | Comprehensive NLP model competition and metrics reports |
-| **Test Suite** | `tests/` | 186 automated pytest tests covering baseline, Sprint 1 through Sprint 8 |
+| **Patient Experience Engine** | `src/patient_experience.py` | Descriptive sentiment, drug/condition aggregations, aspect extraction, lexical similarity |
+| **Patient Experience Reports** | `Results/patient_experience_report.json`, `Results/patient_experience_summary.json` | Machine-readable full and compact patient experience intelligence reports |
+| **Test Suite** | `tests/` | 211 automated pytest tests covering baseline, Sprint 1 through Sprint 9 |
 | **Container** | `Dockerfile`, `docker-compose.yml` | Hardened multi-stage build, non-root user (appuser), active healthcheck |
 | **CI Automation** | `.github/workflows/ci.yml` | Continuous integration: black, ruff, dvc, pytest, Docker build & smoke tests |
 | **CD Automation** | `.github/workflows/cd.yml` | Branch-guarded continuous deployment to HF Spaces |
@@ -93,6 +95,7 @@
 | **Retraining Docs** | `docs/retraining.md` | Drift certification, dual quality gate, atomic promotion, and rollback guide |
 | **NLP Foundation Docs** | `docs/nlp-data-foundation.md` | Review data foundation, schema validation, and leakage-safe splitting |
 | **NLP Competition Docs** | `docs/nlp-model-competition.md` | Classical NLP model competition, TF-IDF, CV Macro F1, and quality gate |
+| **Patient Experience Docs** | `docs/patient-experience-intelligence.md` | Patient experience analytics, aspect extraction, and TF-IDF similarity |
 
 ## 3. Medical Safety Boundary
 
