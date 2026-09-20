@@ -300,4 +300,94 @@ reviews:
       metadata_path: "Model/nlp/nlp_model_metadata.json"
       report_path: "Results/nlp_competition_report.json"
       metrics_path: "Results/nlp_metrics.json"
+  patient_experience:
+    min_reviews_threshold: 20
+    condition_min_reviews_threshold: 10
+    aspects:
+      side_effects:
+        - "side effect"
+        - "nausea"
+        - "headache"
+        - "dizziness"
+        - "dizzy"
+        - "vomiting"
+        - "fatigue"
+        - "rash"
+        - "stomach pain"
+        - "diarrhea"
+      effectiveness:
+        - "effective"
+        - "cured"
+        - "worked wonders"
+        - "helped"
+        - "works great"
+        - "relief"
+        - "miracle"
+        - "improved"
+        - "symptom free"
+      dosage_administration:
+        - "dose"
+        - "dosage"
+        - "pill"
+        - "tablet"
+        - "capsule"
+        - "injection"
+        - "daily"
+        - "mg"
+        - "twice a day"
+      cost_affordability:
+        - "cost"
+        - "expensive"
+        - "insurance"
+        - "copay"
+        - "affordable"
+        - "cheap"
+        - "price"
+        - "coverage"
+        - "pocket"
+      sleep_drowsiness:
+        - "insomnia"
+        - "drowsy"
+        - "drowsiness"
+        - "sleep"
+        - "sleeping"
+        - "nightmare"
+        - "somnolence"
+        - "tired"
+      mental_mood:
+        - "anxiety"
+        - "depression"
+        - "panic"
+        - "mood"
+        - "suicidal"
+        - "calm"
+        - "irritability"
+        - "depressed"
+        - "nervous"
+      weight_appetite:
+        - "weight gain"
+        - "weight loss"
+        - "appetite"
+        - "gained weight"
+        - "lost weight"
+        - "hungry"
+        - "hunger"
+        - "pounds"
+      withdrawal_dependence:
+        - "withdrawal"
+        - "taper"
+        - "dependence"
+        - "depend"
+        - "stopping"
+        - "stopped taking"
+        - "wean"
+    similarity:
+      ngram_range: [1, 2]
+      min_df: 3
+      max_df: 0.90
+      max_features: 10000
+      default_top_k: 5
+    reports:
+      full_report_path: "Results/patient_experience_report.json"
+      summary_report_path: "Results/patient_experience_summary.json"
 
