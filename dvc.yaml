@@ -46,3 +46,16 @@ stages:
     outs:
       - Data/reviews/processed/reviews_cleaned.parquet:
           cache: false
+
+  nlp_competition:
+    cmd: python -c "from src.nlp_competition import run_nlp_competition; run_nlp_competition()"
+    deps:
+      - Data/reviews/processed/reviews_cleaned.parquet
+      - configs/model_config.yaml
+      - src/nlp_competition.py
+      - src/nlp_tracking.py
+    outs:
+      - Results/nlp_competition_report.json:
+          cache: false
+      - Results/nlp_metrics.json:
+          cache: false

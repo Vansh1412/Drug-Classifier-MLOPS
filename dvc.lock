@@ -99,3 +99,32 @@ stages:
       hash: md5
       md5: 8db15e26ac1e38ea7436ca6795f154cb
       size: 49306652
+  nlp_competition:
+    cmd: python -c "from src.nlp_competition import run_nlp_competition; 
+      run_nlp_competition()"
+    deps:
+    - path: Data/reviews/processed/reviews_cleaned.parquet
+      hash: md5
+      md5: 8db15e26ac1e38ea7436ca6795f154cb
+      size: 49306652
+    - path: configs/model_config.yaml
+      hash: md5
+      md5: 72f0e02702e41202d66327e28cbbc0b8
+      size: 9137
+    - path: src/nlp_competition.py
+      hash: md5
+      md5: 4734b6db7e53527e95ac14268a0a6ed5
+      size: 29000
+    - path: src/nlp_tracking.py
+      hash: md5
+      md5: 5a59c9215e7449c7fd5f4e235400f2e6
+      size: 5914
+    outs:
+    - path: Results/nlp_competition_report.json
+      hash: md5
+      md5: fb2439c9b24ad99453e940eb6add8a04
+      size: 6859
+    - path: Results/nlp_metrics.json
+      hash: md5
+      md5: d4abb9d7e2d81c76a16540adc7d20472
+      size: 780

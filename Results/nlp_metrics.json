@@ -1,0 +1,27 @@
+{
+  "champion": "NONE",
+  "quality_gate_passed": false,
+  "candidates": {
+    "logistic_regression": {
+      "cv_macro_f1": 0.6241678027739576,
+      "cv_f1_std": 0.004456609719271674,
+      "test_macro_f1": 0.6332478335556938,
+      "test_accuracy": 0.7040321075228673,
+      "gate_passed": false
+    },
+    "linear_svm": {
+      "cv_macro_f1": 0.6032604754506574,
+      "cv_f1_std": 0.005221206971380614,
+      "test_macro_f1": 0.6170472731059076,
+      "test_accuracy": 0.7170991226432705,
+      "gate_passed": false
+    },
+    "naive_bayes": {
+      "cv_macro_f1": 0.5149348949705972,
+      "cv_f1_std": 0.006254318277000357,
+      "test_macro_f1": 0.5207504255030798,
+      "test_accuracy": 0.7236326302034721,
+      "gate_passed": false
+    }
+  }
+}

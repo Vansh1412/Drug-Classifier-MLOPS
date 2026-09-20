@@ -1,0 +1,234 @@
+{
+  "workload": "nlp",
+  "sprint": 8,
+  "dataset_rows": 53766,
+  "class_distribution": {
+    "high": {
+      "count": 32349,
+      "percentage": 60.17
+    },
+    "low": {
+      "count": 13497,
+      "percentage": 25.1
+    },
+    "neutral": {
+      "count": 7920,
+      "percentage": 14.73
+    }
+  },
+  "split_strategy": "stratified_group",
+  "text_overlap": 0,
+  "quality_gate_thresholds": {
+    "min_macro_f1": 0.7,
+    "min_accuracy": 0.7,
+    "min_class_recall": 0.4
+  },
+  "champion": null,
+  "candidates": [
+    {
+      "model_name": "logistic_regression",
+      "mlflow_run_id": "1213a88e44904b6aa17308b2ee2c7342",
+      "cv_metrics": {
+        "cv_macro_f1_mean": 0.6241678027739576,
+        "cv_macro_f1_std": 0.004456609719271674,
+        "cv_accuracy_mean": 0.7000188796162875,
+        "cv_accuracy_std": 0.00375641703907202,
+        "cv_precision_macro_mean": 0.6198123976111733,
+        "cv_precision_macro_std": 0.0046761264526176535,
+        "cv_recall_macro_mean": 0.6410306078415349,
+        "cv_recall_macro_std": 0.006753913365089969
+      },
+      "test_metrics": {
+        "test_macro_f1": 0.6332478335556938,
+        "test_accuracy": 0.7040321075228673,
+        "test_precision_macro": 0.6298535211676813,
+        "test_recall_macro": 0.6513570630517576,
+        "class_metrics": {
+          "low": {
+            "precision": 0.6892755681818182,
+            "recall": 0.7167651403249631,
+            "f1": 0.7027516292541637,
+            "support": 2708
+          },
+          "neutral": {
+            "precision": 0.3195192706174886,
+            "recall": 0.4839924670433145,
+            "f1": 0.3849226160758862,
+            "support": 1593
+          },
+          "high": {
+            "precision": 0.8807657247037375,
+            "recall": 0.7533135817869951,
+            "f1": 0.8120692553370314,
+            "support": 6413
+          }
+        },
+        "confusion_matrix": [
+          [
+            1941,
+            547,
+            220
+          ],
+          [
+            388,
+            771,
+            434
+          ],
+          [
+            487,
+            1095,
+            4831
+          ]
+        ],
+        "classes": [
+          "low",
+          "neutral",
+          "high"
+        ]
+      },
+      "quality_gate_passed": false,
+      "quality_gate_reasons": [
+        "CV Macro F1 (0.6242) below threshold (0.7000)",
+        "Test Macro F1 (0.6332) below threshold (0.7000)"
+      ]
+    },
+    {
+      "model_name": "linear_svm",
+      "mlflow_run_id": "b5fe935c22ed40b8910583caac0d1ccc",
+      "cv_metrics": {
+        "cv_macro_f1_mean": 0.6032604754506574,
+        "cv_macro_f1_std": 0.005221206971380614,
+        "cv_accuracy_mean": 0.7113783805433619,
+        "cv_accuracy_std": 0.004624833576147535,
+        "cv_precision_macro_mean": 0.6012533619043655,
+        "cv_precision_macro_std": 0.005202704951102097,
+        "cv_recall_macro_mean": 0.6055645859176015,
+        "cv_recall_macro_std": 0.005353677291243581
+      },
+      "test_metrics": {
+        "test_macro_f1": 0.6170472731059076,
+        "test_accuracy": 0.7170991226432705,
+        "test_precision_macro": 0.6150030279665565,
+        "test_recall_macro": 0.6194077905578866,
+        "class_metrics": {
+          "low": {
+            "precision": 0.6841914430746918,
+            "recall": 0.696824224519941,
+            "f1": 0.6904500548847421,
+            "support": 2708
+          },
+          "neutral": {
+            "precision": 0.32269503546099293,
+            "recall": 0.3427495291902072,
+            "f1": 0.3324200913242009,
+            "support": 1593
+          },
+          "high": {
+            "precision": 0.8381226053639846,
+            "recall": 0.8186496179635117,
+            "f1": 0.8282716731087797,
+            "support": 6413
+          }
+        },
+        "confusion_matrix": [
+          [
+            1887,
+            439,
+            382
+          ],
+          [
+            415,
+            546,
+            632
+          ],
+          [
+            456,
+            707,
+            5250
+          ]
+        ],
+        "classes": [
+          "low",
+          "neutral",
+          "high"
+        ]
+      },
+      "quality_gate_passed": false,
+      "quality_gate_reasons": [
+        "CV Macro F1 (0.6033) below threshold (0.7000)",
+        "Test Macro F1 (0.6170) below threshold (0.7000)",
+        "Class 'neutral' recall (0.3427) below threshold (0.4000)"
+      ]
+    },
+    {
+      "model_name": "naive_bayes",
+      "mlflow_run_id": "4918647fa5374e6caaf4f7da57ad56d0",
+      "cv_metrics": {
+        "cv_macro_f1_mean": 0.5149348949705972,
+        "cv_macro_f1_std": 0.006254318277000357,
+        "cv_accuracy_mean": 0.7251937786640653,
+        "cv_accuracy_std": 0.006711883183455417,
+        "cv_precision_macro_mean": 0.6498889992742113,
+        "cv_precision_macro_std": 0.02182041337658446,
+        "cv_recall_macro_mean": 0.5205940230216991,
+        "cv_recall_macro_std": 0.004243374879278984
+      },
+      "test_metrics": {
+        "test_macro_f1": 0.5207504255030798,
+        "test_accuracy": 0.7236326302034721,
+        "test_precision_macro": 0.6423188230088611,
+        "test_recall_macro": 0.5248720130590532,
+        "class_metrics": {
+          "low": {
+            "precision": 0.7458455522971652,
+            "recall": 0.5635155096011817,
+            "f1": 0.6419856962557846,
+            "support": 2708
+          },
+          "neutral": {
+            "precision": 0.45698924731182794,
+            "recall": 0.053358443188951665,
+            "f1": 0.0955593029792018,
+            "support": 1593
+          },
+          "high": {
+            "precision": 0.7241216694175902,
+            "recall": 0.9577420863870264,
+            "f1": 0.824706277274253,
+            "support": 6413
+          }
+        },
+        "confusion_matrix": [
+          [
+            1526,
+            48,
+            1134
+          ],
+          [
+            302,
+            85,
+            1206
+          ],
+          [
+            218,
+            53,
+            6142
+          ]
+        ],
+        "classes": [
+          "low",
+          "neutral",
+          "high"
+        ]
+      },
+      "quality_gate_passed": false,
+      "quality_gate_reasons": [
+        "CV Macro F1 (0.5149) below threshold (0.7000)",
+        "Test Macro F1 (0.5208) below threshold (0.7000)",
+        "Class 'neutral' recall (0.0534) below threshold (0.4000)"
+      ]
+    }
+  ],
+  "generated_at": "2026-09-20T04:43:55.710696+00:00",
+  "medical_safety_boundary": "Model performance on patient-reported drug reviews should not be interpreted as clinical efficacy, safety, diagnosis, or prescribing evidence."
+}
