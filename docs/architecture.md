@@ -77,7 +77,11 @@
 | **Structured Metrics** | `Results/metrics.json` | Machine-readable metrics for all candidates |
 | **API Layer** | `api/main.py` | FastAPI production REST server (/health, /predict, /explain, /version, /metrics, /monitoring, /retraining, /models) |
 | **UI Layer** | `App/drug_app.py` | Gradio interface for Hugging Face Spaces |
-| **Test Suite** | `tests/` | 162 automated pytest tests covering baseline, Sprint 1, 2, 3, 4, 5, 6, and Sprint 7 |
+| **NLP Competition Engine** | `src/nlp_competition.py` | TF-IDF feature pipeline, StratifiedGroupKFold CV, quality gate, and competition runner |
+| **NLP Tracking** | `src/nlp_tracking.py` | Dedicated MLflow experiment tracking (`MedMLOps-X-NLP-Drug-Review`) and lineage logging |
+| **NLP Artifacts** | `Model/nlp/` | Isolated NLP champion and candidate model storage area |
+| **NLP Results** | `Results/nlp_competition_report.json`, `Results/nlp_metrics.json` | Comprehensive NLP model competition and metrics reports |
+| **Test Suite** | `tests/` | 186 automated pytest tests covering baseline, Sprint 1 through Sprint 8 |
 | **Container** | `Dockerfile`, `docker-compose.yml` | Hardened multi-stage build, non-root user (appuser), active healthcheck |
 | **CI Automation** | `.github/workflows/ci.yml` | Continuous integration: black, ruff, dvc, pytest, Docker build & smoke tests |
 | **CD Automation** | `.github/workflows/cd.yml` | Branch-guarded continuous deployment to HF Spaces |
@@ -87,7 +91,9 @@
 | **CI/CD Docs** | `docs/ci-cd.md` | Automated quality gates, smoke testing protocol, and permissions |
 | **Monitoring Docs** | `docs/monitoring.md` | Statistical drift methodology, PSI/KS thresholds, and report schemas |
 | **Retraining Docs** | `docs/retraining.md` | Drift certification, dual quality gate, atomic promotion, and rollback guide |
+| **NLP Foundation Docs** | `docs/nlp-data-foundation.md` | Review data foundation, schema validation, and leakage-safe splitting |
+| **NLP Competition Docs** | `docs/nlp-model-competition.md` | Classical NLP model competition, TF-IDF, CV Macro F1, and quality gate |
 
 ## 3. Medical Safety Boundary
 
-⚠️ **Important:** MedMLOps-X is an educational machine-learning demonstration and is NOT a certified clinical diagnostic or prescribing tool. Predictions and SHAP feature attributions are generated for instructional MLOps demonstration only and must never be utilized as medical advice.
+⚠️ **Important:** MedMLOps-X is an educational machine-learning demonstration and is NOT a certified clinical diagnostic, prescribing, or treatment recommendation tool. Predictions, patient review sentiment classifications, and SHAP feature attributions are generated for instructional MLOps demonstration only and must never be utilized as medical advice, clinical trial efficacy evidence, or clinical decision support.

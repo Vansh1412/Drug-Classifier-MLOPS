@@ -27,14 +27,16 @@ This project builds a **Drug Classification** platform predicting the appropriat
 - 🔒 **Safe Serialization** — Skops model persistence with strict trusted type whitelisting
 - 🐳 **Hardened Containerization** — Multi-stage Docker build, non-root user (appuser UID 10001), healthcheck endpoint polling
 - 📈 **Continuous Model Monitoring** — Statistical drift detection (Kolmogorov-Smirnov, Wasserstein, PSI), data quality checks, and prediction tracking
-- ✅ **Automated Testing** — 162 pytest tests covering baseline, Sprint 1, Sprint 2, Sprint 3, Sprint 4, Sprint 5, Sprint 6, and Sprint 7
-- ⚙️ **CI/CD** — GitHub Actions pipeline: format → lint → DVC integrity → 162 tests → Docker build & smoke test → deploy
+- 🧠 **NLP Model Competition** — Leakage-safe TF-IDF pipeline evaluating Logistic Regression, Linear SVM, and Naive Bayes on patient drug reviews under strict quality gates
+- ✅ **Automated Testing** — 186 pytest tests covering baseline, Sprint 1 through Sprint 8
+- ⚙️ **CI/CD** — GitHub Actions pipeline: format → lint → DVC integrity → 186 tests → Docker build & smoke test → deploy
 
 ## Tech Stack
 
 | Category | Tools |
 |---|---|
 | Language | Python 3.10+ |
+| NLP & Text Feature Extraction | Scikit-learn (TfidfVectorizer, Pipeline), Pandas |
 | Monitoring & Drift | SciPy, NumPy, Pandera (KS-test, Wasserstein, PSI, Chi-Square) |
 | Retraining & Registry | Skops, SciPy, FastAPI, Scikit-learn, XGBoost |
 | Explainability | SHAP (TreeExplainer) |
@@ -101,8 +103,11 @@ curl -X POST http://localhost:8000/models/rollback \
 # Install dependencies
 pip install -r requirements.txt
 
-# Run deterministic training & competition directly
+# Run structured drug classification training & competition directly
 python train.py
+
+# Run NLP review intelligence model competition pipeline
+python -c "from src.nlp_competition import run_nlp_competition; run_nlp_competition()"
 
 # Or reproduce via DVC pipeline
 dvc repro
@@ -110,7 +115,7 @@ dvc repro
 # Start local MLflow experiment dashboard
 mlflow ui --backend-store-uri sqlite:///mlruns.db --port 5000
 
-# Run comprehensive test suite (140 tests)
+# Run comprehensive test suite (186 tests)
 pytest -v
 
 # Start FastAPI server directly
@@ -141,6 +146,8 @@ docker compose up -d
 
 ## Model Competition Results
 
+### Tabular Drug Classifier Workload
+
 | Rank | Model | 5-Fold CV Macro F1 | Test Accuracy | Test Macro F1 | Status |
 |---|---|---|---|---|---|
 | 🏆 1 | **XGBoost** | 0.9633 ± 0.0330 | **100.0%** | **1.0000** | **Champion** |
@@ -152,9 +159,20 @@ docker compose up -d
 
 ![Confusion Matrix](./Results/model_results.png)
 
+### NLP Drug Review Intelligence Workload (Sprint 8)
+
+| Model | 5-Fold CV Macro F1 | CV Std | Test Macro F1 | Test Accuracy | Quality Gate Status |
+|---|---|---|---|---|---|
+| **Logistic Regression** | **0.6242** | $\pm 0.0045$ | **0.6332** | 70.40% | **REJECTED (Gate Fail)** |
+| **Linear SVM** | 0.6033 | $\pm 0.0052$ | 0.6170 | 71.71% | **REJECTED (Gate Fail)** |
+| **Multinomial Naive Bayes** | 0.5149 | $\pm 0.0063$ | 0.5208 | **72.36%** | **REJECTED (Gate Fail)** |
+
+> **Quality Gate Outcome:** `NLP CHAMPION: NONE`. All three classical models failed to reach the required `Macro F1 >= 0.70` threshold due to severe class imbalance (High: 60.2%, Low: 25.1%, Neutral: 14.7%) and the difficulty of capturing nuanced neutral sentiment without contextual embeddings. Following MLOps best practices, metrics and thresholds are never manipulated to manufacture a champion.
+
 ## Documentation
 
 - 🏛️ [Architecture](docs/architecture.md) — End-to-end system and component design
+- 🧠 [NLP Model Competition](docs/nlp-model-competition.md) — Classical NLP competition, TF-IDF, CV Macro F1, and quality gate evaluation
 - 📚 [NLP Data Foundation](docs/nlp-data-foundation.md) — Multi-modal review data profile, Pandera schema, preprocessing, and leakage defense
 - 🔄 [Automated Retraining & Rollback](docs/retraining.md) — Retraining orchestrator, drift certification, quality gates, and registry promotion
 - 🐳 [Docker Architecture](docs/docker.md) — Multi-stage build, non-root user, and container hardening
@@ -171,5 +189,5 @@ docker compose up -d
 
 ## Medical Safety Boundary
 
-⚠️ **Important:** MedMLOps-X is an educational machine-learning demonstration and is NOT a certified clinical diagnostic or prescribing tool. Predictions and SHAP feature attributions are generated for instructional MLOps demonstration only and must never be utilized as medical advice.
+⚠️ **Important:** MedMLOps-X is an educational machine-learning demonstration and is NOT a certified clinical diagnostic or prescribing tool. Predictions, patient review sentiment classifications, and SHAP feature attributions are generated for instructional MLOps demonstration only and must never be utilized as medical advice, clinical trial evidence, or prescribing decision support.
 
