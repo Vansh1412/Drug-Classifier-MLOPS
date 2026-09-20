@@ -62,3 +62,40 @@ stages:
       hash: md5
       md5: 403654e92b0406be7e9dea2c9d5dd32a
       size: 31499
+  validate_reviews:
+    cmd: python -c "from src.nlp_validation import validate_review_dataset; 
+      validate_review_dataset('Data/reviews/drugsComTest_raw.csv')"
+    deps:
+    - path: Data/reviews/drugsComTest_raw.csv
+      hash: md5
+      md5: 9e9461e2200485dd1f6743ed17dff4c6
+      size: 27637580
+    - path: configs/model_config.yaml
+      hash: md5
+      md5: 698a32583583810e5b0e8de68236d830
+      size: 7754
+    - path: src/nlp_validation.py
+      hash: md5
+      md5: 2d175f9ef408aaabe6e675c116b59d97
+      size: 9771
+  preprocess_reviews:
+    cmd: python -c "from src.nlp_preprocessing import run_review_preprocessing; 
+      run_review_preprocessing('Data/reviews/drugsComTest_raw.csv')"
+    deps:
+    - path: Data/reviews/drugsComTest_raw.csv
+      hash: md5
+      md5: 9e9461e2200485dd1f6743ed17dff4c6
+      size: 27637580
+    - path: configs/model_config.yaml
+      hash: md5
+      md5: 698a32583583810e5b0e8de68236d830
+      size: 7754
+    - path: src/nlp_preprocessing.py
+      hash: md5
+      md5: 79f3ee1578ff7ef17e3c016799f975ff
+      size: 12262
+    outs:
+    - path: Data/reviews/processed/reviews_cleaned.parquet
+      hash: md5
+      md5: 8db15e26ac1e38ea7436ca6795f154cb
+      size: 49306652

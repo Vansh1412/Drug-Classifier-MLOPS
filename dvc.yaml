@@ -29,3 +29,20 @@ stages:
           cache: false
       - Results/competition_report.json:
           cache: false
+
+  validate_reviews:
+    cmd: python -c "from src.nlp_validation import validate_review_dataset; validate_review_dataset('Data/reviews/drugsComTest_raw.csv')"
+    deps:
+      - Data/reviews/drugsComTest_raw.csv
+      - configs/model_config.yaml
+      - src/nlp_validation.py
+
+  preprocess_reviews:
+    cmd: python -c "from src.nlp_preprocessing import run_review_preprocessing; run_review_preprocessing('Data/reviews/drugsComTest_raw.csv')"
+    deps:
+      - Data/reviews/drugsComTest_raw.csv
+      - configs/model_config.yaml
+      - src/nlp_preprocessing.py
+    outs:
+      - Data/reviews/processed/reviews_cleaned.parquet:
+          cache: false
