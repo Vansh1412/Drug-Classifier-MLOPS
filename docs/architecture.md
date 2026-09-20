@@ -83,7 +83,9 @@
 | **NLP Results** | `Results/nlp_competition_report.json`, `Results/nlp_metrics.json` | Comprehensive NLP model competition and metrics reports |
 | **Patient Experience Engine** | `src/patient_experience.py` | Descriptive sentiment, drug/condition aggregations, aspect extraction, lexical similarity |
 | **Patient Experience Reports** | `Results/patient_experience_report.json`, `Results/patient_experience_summary.json` | Machine-readable full and compact patient experience intelligence reports |
-| **Test Suite** | `tests/` | 211 automated pytest tests covering baseline, Sprint 1 through Sprint 9 |
+| **NLP Monitoring Engine** | `src/nlp_monitoring.py` | Statistical drift (length, vocabulary, TF-IDF, sentiment, rating, aspect, category, prediction) and certification |
+| **NLP Monitoring Reports** | `Results/nlp_drift_report.json`, `monitoring/nlp_reports/` | Comprehensive NLP drift and data quality reports |
+| **Test Suite** | `tests/` | 247 automated pytest tests covering baseline, Sprint 1 through Sprint 10 |
 | **Container** | `Dockerfile`, `docker-compose.yml` | Hardened multi-stage build, non-root user (appuser), active healthcheck |
 | **CI Automation** | `.github/workflows/ci.yml` | Continuous integration: black, ruff, dvc, pytest, Docker build & smoke tests |
 | **CD Automation** | `.github/workflows/cd.yml` | Branch-guarded continuous deployment to HF Spaces |
@@ -91,12 +93,13 @@
 | **Tool Config** | `pyproject.toml` | Unified configuration for pytest, black, ruff, coverage |
 | **Container Docs** | `docs/docker.md` | Multi-stage architecture, security controls, and CLI guide |
 | **CI/CD Docs** | `docs/ci-cd.md` | Automated quality gates, smoke testing protocol, and permissions |
-| **Monitoring Docs** | `docs/monitoring.md` | Statistical drift methodology, PSI/KS thresholds, and report schemas |
+| **Monitoring Docs** | `docs/monitoring.md` | Structured ML statistical drift methodology, PSI/KS thresholds, and report schemas |
 | **Retraining Docs** | `docs/retraining.md` | Drift certification, dual quality gate, atomic promotion, and rollback guide |
 | **NLP Foundation Docs** | `docs/nlp-data-foundation.md` | Review data foundation, schema validation, and leakage-safe splitting |
 | **NLP Competition Docs** | `docs/nlp-model-competition.md` | Classical NLP model competition, TF-IDF, CV Macro F1, and quality gate |
 | **Patient Experience Docs** | `docs/patient-experience-intelligence.md` | Patient experience analytics, aspect extraction, and TF-IDF similarity |
+| **NLP Monitoring Docs** | `docs/nlp-monitoring.md` | NLP statistical drift methodology, baseline reference, aspect tracking, and API guide |
 
 ## 3. Medical Safety Boundary
 
-⚠️ **Important:** MedMLOps-X is an educational machine-learning demonstration and is NOT a certified clinical diagnostic, prescribing, or treatment recommendation tool. Predictions, patient review sentiment classifications, and SHAP feature attributions are generated for instructional MLOps demonstration only and must never be utilized as medical advice, clinical trial efficacy evidence, or clinical decision support.
+⚠️ **Important:** MedMLOps-X is an educational machine-learning demonstration and is NOT a certified clinical diagnostic, prescribing, or treatment recommendation tool. Predictions, patient review sentiment classifications, aspect frequency extractions, and SHAP feature attributions are generated for instructional MLOps demonstration only and must never be utilized as medical advice, clinical trial efficacy evidence, or clinical decision support.

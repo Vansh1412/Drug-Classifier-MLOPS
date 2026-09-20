@@ -391,3 +391,99 @@ reviews:
       full_report_path: "Results/patient_experience_report.json"
       summary_report_path: "Results/patient_experience_summary.json"
 
+# ---------------------------------------------------------------------------
+# NLP Monitoring & Drift Detection Configuration (Sprint 10)
+# ---------------------------------------------------------------------------
+nlp_monitoring:
+  enabled: true
+  reference_dataset: "Data/reviews/processed/reviews_cleaned.parquet"
+  reports_dir: "monitoring/nlp_reports"
+  report_path: "Results/nlp_drift_report.json"
+  max_batch_size: 1000
+
+  # S10-T3: Schema & Data Quality
+  quality:
+    max_null_rate: 0.05
+    max_empty_review_rate: 0.0
+    max_invalid_rating_rate: 0.0
+    max_invalid_date_rate: 0.0
+    expected_columns:
+      - "uniqueID"
+      - "drugName"
+      - "condition"
+      - "review"
+      - "rating"
+      - "date"
+      - "usefulCount"
+
+  # S10-T4: Review Length Drift
+  length_drift:
+    features:
+      - "review_char_count"
+      - "review_word_count"
+      - "review_sentence_count"
+    ks_p_value_warning: 0.05
+    ks_p_value_drift: 0.01
+    wasserstein_warning: 0.15
+    wasserstein_drift: 0.30
+    psi_warning: 0.10
+    psi_drift: 0.20
+
+  # S10-T5: Vocabulary Drift
+  vocabulary_drift:
+    jaccard_warning: 0.60
+    jaccard_drift: 0.40
+    new_token_rate_warning: 0.15
+    new_token_rate_drift: 0.30
+    removed_token_rate_warning: 0.15
+    removed_token_rate_drift: 0.30
+    top_n_tokens: 50
+
+  # S10-T6: TF-IDF Feature Distribution Drift
+  tfidf_drift:
+    max_features: 5000
+    top_n_features: 500
+    cosine_distance_warning: 0.15
+    cosine_distance_drift: 0.30
+    feature_psi_warning: 0.10
+    feature_psi_drift: 0.20
+
+  # S10-T7: Sentiment Distribution Drift
+  sentiment_drift:
+    psi_warning: 0.10
+    psi_drift: 0.20
+    chi2_p_value_drift: 0.01
+    classes:
+      - "low"
+      - "neutral"
+      - "high"
+
+  # S10-T8: Rating Distribution Drift
+  rating_drift:
+    ks_p_value_warning: 0.05
+    ks_p_value_drift: 0.01
+    wasserstein_warning: 0.15
+    wasserstein_drift: 0.30
+    psi_warning: 0.10
+    psi_drift: 0.20
+
+  # S10-T9: Aspect Drift
+  aspect_drift:
+    enabled: true
+    warning_pct_change: 5.0
+    drift_pct_change: 10.0
+
+  # S10-T10: Categorical (Drug & Condition) Drift
+  categorical_drift:
+    min_frequency: 20
+    psi_warning: 0.10
+    psi_drift: 0.20
+    new_category_rate_warning: 0.05
+    new_category_rate_drift: 0.15
+
+  # S10-T11: Prediction Drift
+  prediction_drift:
+    enabled: true
+    psi_warning: 0.10
+    psi_drift: 0.20
+

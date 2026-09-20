@@ -153,3 +153,24 @@ stages:
       hash: md5
       md5: 769fd97146790261f6d034314a9ad7a7
       size: 3825
+  nlp_monitoring:
+    cmd: python -c "from src.nlp_monitoring import run_nlp_monitoring; 
+      run_nlp_monitoring()"
+    deps:
+    - path: Data/reviews/processed/reviews_cleaned.parquet
+      hash: md5
+      md5: 8db15e26ac1e38ea7436ca6795f154cb
+      size: 49306652
+    - path: configs/model_config.yaml
+      hash: md5
+      md5: d792244e7c998a7916aec547daa06067
+      size: 13508
+    - path: src/nlp_monitoring.py
+      hash: md5
+      md5: 15cf692ddc0caf29c04bf3b377cd5e8b
+      size: 58356
+    outs:
+    - path: Results/nlp_drift_report.json
+      hash: md5
+      md5: 8c37a326f2066318d9d6bb19884a1a8b
+      size: 12533

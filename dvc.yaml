@@ -71,3 +71,13 @@ stages:
           cache: false
       - Results/patient_experience_summary.json:
           cache: false
+
+  nlp_monitoring:
+    cmd: python -c "from src.nlp_monitoring import run_nlp_monitoring; run_nlp_monitoring()"
+    deps:
+      - Data/reviews/processed/reviews_cleaned.parquet
+      - configs/model_config.yaml
+      - src/nlp_monitoring.py
+    outs:
+      - Results/nlp_drift_report.json:
+          cache: false

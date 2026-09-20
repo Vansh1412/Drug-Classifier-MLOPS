@@ -223,6 +223,50 @@ class DriftEvaluationRequest(BaseModel):
     )
 
 
+class ReviewRecord(BaseModel):
+    unique_id: int | None = Field(
+        default=None, alias="uniqueID", description="Unique review identifier"
+    )
+    drug_name: str = Field(
+        ...,
+        alias="drugName",
+        min_length=1,
+        max_length=200,
+        description="Name of the medication",
+    )
+    condition: str | None = Field(
+        default="Unknown",
+        min_length=1,
+        max_length=200,
+        description="Condition treated (default 'Unknown')",
+    )
+    review: str = Field(..., min_length=1, description="Patient-reported review text")
+    rating: int = Field(
+        ..., ge=1, le=10, description="Patient rating (integer 1 to 10)"
+    )
+    date: str = Field(
+        ..., description="Review date string (e.g. '28-Feb-12' or 'YYYY-MM-DD')"
+    )
+    useful_count: int = Field(
+        default=0, alias="usefulCount", ge=0, description="Useful review count"
+    )
+
+    model_config = {"populate_by_name": True}
+
+
+class NLPDriftEvaluationRequest(BaseModel):
+    reviews: list[ReviewRecord] = Field(
+        ...,
+        min_length=1,
+        max_length=1000,
+        description="Batch of patient review records to evaluate for NLP data and distribution drift (1 to 1000 items)",
+    )
+    predictions: list[str] | None = Field(
+        default=None,
+        description="Optional predicted sentiment or category labels for evaluating prediction drift",
+    )
+
+
 class RetrainingTriggerRequest(BaseModel):
     report_id: str | None = Field(
         default=None,
@@ -595,6 +639,68 @@ def get_latest_monitoring_report():
             monitor.reference_df, include_predictions=True, save_report=True
         )
     return report
+
+
+@app.post("/monitoring/nlp/drift", tags=["NLP Monitoring"])
+def evaluate_nlp_drift(request_data: NLPDriftEvaluationRequest):
+    """
+    Evaluate a batch of patient review records for text length drift, vocabulary drift,
+    TF-IDF feature drift, sentiment drift, rating drift, aspect drift, and category drift.
+
+    Strictly preserves privacy: zero raw review text is returned in the response.
+    """
+    try:
+        from src.nlp_monitoring import get_nlp_monitor
+        from src.nlp_preprocessing import clean_text
+
+        monitor = get_nlp_monitor()
+        records_data = []
+        for r in request_data.reviews:
+            c_text = clean_text(r.review)
+            records_data.append(
+                {
+                    "uniqueID": r.unique_id or 0,
+                    "drugName": r.drug_name,
+                    "condition": r.condition or "Unknown",
+                    "review": r.review,
+                    "review_clean": c_text,
+                    "rating": r.rating,
+                    "date": r.date,
+                    "usefulCount": r.useful_count,
+                }
+            )
+        current_df = pd.DataFrame(records_data)
+        report = monitor.certify_drift(
+            current_df,
+            current_predictions=request_data.predictions,
+            save_report=True,
+        )
+        return report
+    except Exception as exc:
+        logger.error(f"NLP drift monitoring evaluation failed: {exc}")
+        raise HTTPException(
+            status_code=500, detail="NLP drift monitoring computation failed."
+        )
+
+
+@app.get("/monitoring/nlp/latest", tags=["NLP Monitoring"])
+def get_latest_nlp_monitoring_report():
+    """
+    Retrieve the most recently computed and persisted NLP drift report.
+    """
+    try:
+        from src.nlp_monitoring import get_nlp_monitor
+
+        monitor = get_nlp_monitor()
+        report = monitor.get_latest_report()
+        if report is None:
+            report = monitor.certify_drift(monitor.reference_df, save_report=True)
+        return report
+    except Exception as exc:
+        logger.error(f"Failed to retrieve latest NLP drift report: {exc}")
+        raise HTTPException(
+            status_code=500, detail="Failed to retrieve latest NLP drift report."
+        )
 
 
 @app.post("/retraining/trigger", tags=["Lifecycle"])

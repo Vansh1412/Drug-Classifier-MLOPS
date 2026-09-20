@@ -1,0 +1,446 @@
+{
+  "report_id": "nlp_drift_20260920_053302_58d4d0c1",
+  "timestamp": "2026-09-20T05:33:02.664612+00:00",
+  "certification": {
+    "overall_status": "DRIFT",
+    "overall_severity": "HIGH",
+    "drift_detected": true,
+    "signals": [
+      "review_length_distribution_drift",
+      "vocabulary_distribution_drift",
+      "tfidf_feature_distribution_drift",
+      "sentiment_distribution_drift",
+      "rating_distribution_drift",
+      "aspect_frequency_drift",
+      "category_distribution_drift"
+    ],
+    "automated_retraining_triggered": false
+  },
+  "reference": {
+    "dataset_path": "Data\\reviews\\processed\\reviews_cleaned.parquet",
+    "rows": 53766,
+    "file_sha256": "1057924d53c81f85802c58ee60247abaaf70174c977233a8adfc37d744b81b2c",
+    "dvc_hash": "9e9461e2200485dd1f6743ed17dff4c6",
+    "git_commit": "faac1e53d1f9c9de30a6060cf4b28ea4d8a5a57c",
+    "created_timestamp": "2026-09-20T05:32:47.566353+00:00",
+    "config_version": "1.1.0"
+  },
+  "current": {
+    "rows": 2,
+    "timestamp": "2026-09-20T05:33:02.664612+00:00"
+  },
+  "data_quality": {
+    "status": "PASS",
+    "total_rows": 2,
+    "missing_columns": [],
+    "unexpected_columns": [],
+    "null_rates": {
+      "uniqueID": 0.0,
+      "drugName": 0.0,
+      "condition": 0.0,
+      "review": 0.0,
+      "review_clean": 0.0,
+      "rating": 0.0,
+      "date": 0.0,
+      "usefulCount": 0.0
+    },
+    "empty_review_count": 0,
+    "empty_review_rate": 0.0,
+    "invalid_ratings_count": 0,
+    "invalid_dates_count": 0,
+    "issues": []
+  },
+  "text_length_drift": {
+    "status": "DRIFT",
+    "drift_detected": true,
+    "features": {
+      "review_char_count": {
+        "status": "DRIFT",
+        "ks_statistic": 0.9646,
+        "ks_p_value": 0.002503,
+        "wasserstein_distance": 1.6904,
+        "psi": 8.2775,
+        "reference_summary": {
+          "mean": 445.2469,
+          "std": 231.3365,
+          "min": 1.0,
+          "max": 5974.0,
+          "median": 444.0
+        },
+        "current_summary": {
+          "mean": 55.5,
+          "std": 3.5355,
+          "min": 53.0,
+          "max": 58.0,
+          "median": 55.5
+        }
+      },
+      "review_word_count": {
+        "status": "DRIFT",
+        "ks_statistic": 0.9704,
+        "ks_p_value": 0.001756,
+        "wasserstein_distance": 1.7214,
+        "psi": 8.2181,
+        "reference_summary": {
+          "mean": 84.5768,
+          "std": 44.2844,
+          "min": 1.0,
+          "max": 1162.0,
+          "median": 84.0
+        },
+        "current_summary": {
+          "mean": 8.5,
+          "std": 0.7071,
+          "min": 8.0,
+          "max": 9.0,
+          "median": 8.5
+        }
+      },
+      "review_sentence_count": {
+        "status": "DRIFT",
+        "ks_statistic": 0.9261,
+        "ks_p_value": 0.010932,
+        "wasserstein_distance": 1.501,
+        "psi": 7.3598,
+        "reference_summary": {
+          "mean": 6.0245,
+          "std": 3.3475,
+          "min": 1.0,
+          "max": 74.0,
+          "median": 6.0
+        },
+        "current_summary": {
+          "mean": 1.0,
+          "std": 0.0,
+          "min": 1.0,
+          "max": 1.0,
+          "median": 1.0
+        }
+      }
+    }
+  },
+  "vocabulary_drift": {
+    "status": "DRIFT",
+    "drift_detected": true,
+    "jaccard_similarity": 0.0005,
+    "vocabulary_overlap_rate": 1.0,
+    "reference_vocab_size": 30974,
+    "current_vocab_size": 16,
+    "new_token_count": 0,
+    "new_token_rate": 0.0,
+    "removed_token_count": 30958,
+    "removed_token_rate": 0.9995,
+    "top_token_shifts": {
+      "and": {
+        "reference_freq": 0.0353,
+        "current_freq": 0.0625,
+        "shift": 0.0272
+      },
+      "the": {
+        "reference_freq": 0.0334,
+        "current_freq": 0.0,
+        "shift": -0.0334
+      },
+      "to": {
+        "reference_freq": 0.0265,
+        "current_freq": 0.0,
+        "shift": -0.0265
+      },
+      "it": {
+        "reference_freq": 0.0261,
+        "current_freq": 0.0,
+        "shift": -0.0261
+      },
+      "my": {
+        "reference_freq": 0.0238,
+        "current_freq": 0.0625,
+        "shift": 0.0387
+      },
+      "for": {
+        "reference_freq": 0.0165,
+        "current_freq": 0.0625,
+        "shift": 0.046
+      },
+      "was": {
+        "reference_freq": 0.0145,
+        "current_freq": 0.0,
+        "shift": -0.0145
+      },
+      "have": {
+        "reference_freq": 0.0141,
+        "current_freq": 0.0,
+        "shift": -0.0141
+      },
+      "of": {
+        "reference_freq": 0.014,
+        "current_freq": 0.0,
+        "shift": -0.014
+      },
+      "on": {
+        "reference_freq": 0.0112,
+        "current_freq": 0.0,
+        "shift": -0.0112
+      },
+      "this": {
+        "reference_freq": 0.0111,
+        "current_freq": 0.0,
+        "shift": -0.0111
+      },
+      "in": {
+        "reference_freq": 0.0103,
+        "current_freq": 0.0,
+        "shift": -0.0103
+      },
+      "but": {
+        "reference_freq": 0.0101,
+        "current_freq": 0.0,
+        "shift": -0.0101
+      },
+      "me": {
+        "reference_freq": 0.0095,
+        "current_freq": 0.0,
+        "shift": -0.0095
+      },
+      "had": {
+        "reference_freq": 0.0095,
+        "current_freq": 0.0,
+        "shift": -0.0095
+      }
+    },
+    "medical_disclaimer": "Vocabulary changes reflect lexical variations in review texts and do not establish new clinical events or safety signals."
+  },
+  "tfidf_drift": {
+    "status": "DRIFT",
+    "drift_detected": true,
+    "cosine_distance": 0.8844,
+    "cosine_similarity": 0.1156,
+    "features_monitored": 5000,
+    "top_drifted_features": [
+      {
+        "feature": "very effective",
+        "reference_mean_weight": 0.0018,
+        "current_mean_weight": 0.2529,
+        "weight_difference": 0.2511,
+        "feature_psi": 0.0
+      },
+      {
+        "feature": "levels",
+        "reference_mean_weight": 0.0017,
+        "current_mean_weight": 0.2441,
+        "weight_difference": 0.2424,
+        "feature_psi": 0.0
+      },
+      {
+        "feature": "medication for",
+        "reference_mean_weight": 0.0023,
+        "current_mean_weight": 0.2247,
+        "weight_difference": 0.2224,
+        "feature_psi": 0.0
+      },
+      {
+        "feature": "muscle pain",
+        "reference_mean_weight": 0.0006,
+        "current_mean_weight": 0.2147,
+        "weight_difference": 0.2141,
+        "feature_psi": 0.0
+      },
+      {
+        "feature": "and nausea",
+        "reference_mean_weight": 0.0009,
+        "current_mean_weight": 0.1925,
+        "weight_difference": 0.1916,
+        "feature_psi": 0.0
+      },
+      {
+        "feature": "after weeks",
+        "reference_mean_weight": 0.001,
+        "current_mean_weight": 0.1894,
+        "weight_difference": 0.1884,
+        "feature_psi": 0.0
+      },
+      {
+        "feature": "effective",
+        "reference_mean_weight": 0.005,
+        "current_mean_weight": 0.1905,
+        "weight_difference": 0.1855,
+        "feature_psi": 0.0
+      },
+      {
+        "feature": "moderate",
+        "reference_mean_weight": 0.0012,
+        "current_mean_weight": 0.1809,
+        "weight_difference": 0.1797,
+        "feature_psi": 0.0
+      },
+      {
+        "feature": "muscle",
+        "reference_mean_weight": 0.0025,
+        "current_mean_weight": 0.1592,
+        "weight_difference": 0.1567,
+        "feature_psi": 0.0
+      },
+      {
+        "feature": "pain and",
+        "reference_mean_weight": 0.0031,
+        "current_mean_weight": 0.1468,
+        "weight_difference": 0.1437,
+        "feature_psi": 0.0
+      }
+    ]
+  },
+  "sentiment_drift": {
+    "status": "DRIFT",
+    "drift_detected": true,
+    "psi": 1.265,
+    "chi2_p_value": 0.662732,
+    "reference_distribution": {
+      "high": 0.6017,
+      "low": 0.251,
+      "neutral": 0.1473
+    },
+    "current_distribution": {
+      "high": 0.5,
+      "low": 0.5
+    },
+    "description": "Sentiment PSI=1.265; observed distribution shifted from reference."
+  },
+  "rating_drift": {
+    "status": "DRIFT",
+    "drift_detected": true,
+    "ks_statistic": 0.3165,
+    "ks_p_value": 0.964641,
+    "wasserstein_distance": 0.4969,
+    "psi": 5.2973,
+    "reference_summary": {
+      "mean": 6.9769,
+      "std": 3.2852,
+      "min": 1.0,
+      "max": 10.0,
+      "median": 8.0
+    },
+    "current_summary": {
+      "mean": 6.0,
+      "std": 4.2426,
+      "min": 3.0,
+      "max": 9.0,
+      "median": 6.0
+    },
+    "reference_distribution": {
+      "10": 0.3165,
+      "9": 0.1707,
+      "1": 0.1358,
+      "8": 0.1145,
+      "7": 0.0575,
+      "5": 0.0504,
+      "2": 0.0434,
+      "3": 0.041,
+      "6": 0.0394,
+      "4": 0.0309
+    },
+    "current_distribution": {
+      "9": 0.5,
+      "3": 0.5
+    },
+    "description": "Observed rating distribution shifted toward lower ratings (mean 6.0 vs 6.9769)."
+  },
+  "aspect_drift": {
+    "status": "DRIFT",
+    "drift_detected": true,
+    "aspects": {
+      "side_effects": {
+        "status": "DRIFT",
+        "reference_percentage": 19.06,
+        "current_percentage": 50.0,
+        "absolute_change": 30.94,
+        "relative_change_pct": 162.33,
+        "mention_count": 1
+      },
+      "effectiveness": {
+        "status": "DRIFT",
+        "reference_percentage": 18.83,
+        "current_percentage": 50.0,
+        "absolute_change": 31.17,
+        "relative_change_pct": 165.53,
+        "mention_count": 1
+      },
+      "dosage_administration": {
+        "status": "DRIFT",
+        "reference_percentage": 31.81,
+        "current_percentage": 0.0,
+        "absolute_change": -31.81,
+        "relative_change_pct": -100.0,
+        "mention_count": 0
+      },
+      "cost_affordability": {
+        "status": "WARNING",
+        "reference_percentage": 5.86,
+        "current_percentage": 0.0,
+        "absolute_change": -5.86,
+        "relative_change_pct": -100.0,
+        "mention_count": 0
+      },
+      "sleep_drowsiness": {
+        "status": "DRIFT",
+        "reference_percentage": 15.95,
+        "current_percentage": 0.0,
+        "absolute_change": -15.95,
+        "relative_change_pct": -100.0,
+        "mention_count": 0
+      },
+      "mental_mood": {
+        "status": "DRIFT",
+        "reference_percentage": 24.11,
+        "current_percentage": 0.0,
+        "absolute_change": -24.11,
+        "relative_change_pct": -100.0,
+        "mention_count": 0
+      },
+      "weight_appetite": {
+        "status": "DRIFT",
+        "reference_percentage": 14.55,
+        "current_percentage": 0.0,
+        "absolute_change": -14.55,
+        "relative_change_pct": -100.0,
+        "mention_count": 0
+      },
+      "withdrawal_dependence": {
+        "status": "PASS",
+        "reference_percentage": 4.18,
+        "current_percentage": 0.0,
+        "absolute_change": -4.18,
+        "relative_change_pct": -100.0,
+        "mention_count": 0
+      }
+    },
+    "medical_disclaimer": "Aspect frequency changes describe lexical shifts in review text and do NOT constitute clinical adverse event reports or safety changes."
+  },
+  "category_drift": {
+    "status": "DRIFT",
+    "drift_detected": true,
+    "categories": {
+      "drugName": {
+        "status": "DRIFT",
+        "psi": 0.8384,
+        "new_categories_count": 0,
+        "new_category_rate": 0.0,
+        "disappeared_categories_count": 2636,
+        "total_unique_categories": 1
+      },
+      "condition": {
+        "status": "DRIFT",
+        "psi": 3.7714,
+        "new_categories_count": 0,
+        "new_category_rate": 0.0,
+        "disappeared_categories_count": 708,
+        "total_unique_categories": 1,
+        "unknown_condition_rate": 0.0
+      }
+    }
+  },
+  "prediction_drift": {
+    "status": "NOT_AVAILABLE",
+    "drift_detected": false,
+    "reason": "Sprint 8 produced no accepted NLP champion model; prediction stream not supplied."
+  },
+  "disclaimer": "MLOps statistical monitoring signals only. Not clinical or diagnostic evaluation. Drift in review sentiment, vocabulary, aspects, or ratings indicates a change in the observed data distribution; it does not establish clinical efficacy, drug safety, adverse events, or prescribing guidance without verified clinical outcomes."
+}

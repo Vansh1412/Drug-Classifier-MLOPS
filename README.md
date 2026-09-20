@@ -96,6 +96,14 @@ curl -X POST http://localhost:8000/retraining/trigger \
 # 11. Securely roll back to previous champion model (requires Admin API Key)
 curl -X POST http://localhost:8000/models/rollback \
   -H "X-API-Key: medmlops-admin-key-sprint6"
+
+# 12. Evaluate batch of patient reviews for NLP data & distribution drift
+curl -X POST http://localhost:8000/monitoring/nlp/drift \
+  -H "Content-Type: application/json" \
+  -d '{"reviews": [{"uniqueID": 101, "drugName": "Lipitor", "condition": "High Cholesterol", "review": "Lowered my cholesterol effectively.", "rating": 9, "date": "28-Feb-12", "usefulCount": 5}]}'
+
+# 13. Query latest persisted NLP drift report
+curl http://localhost:8000/monitoring/nlp/latest
 ```
 
 ## Run Locally
@@ -113,13 +121,16 @@ python -c "from src.nlp_competition import run_nlp_competition; run_nlp_competit
 # Run patient experience intelligence analysis
 python -c "from src.patient_experience import generate_patient_experience_report; generate_patient_experience_report()"
 
+# Run NLP review drift monitoring & certification
+python -c "from src.nlp_monitoring import run_nlp_monitoring; run_nlp_monitoring()"
+
 # Or reproduce via DVC pipeline
 dvc repro
 
 # Start local MLflow experiment dashboard
 mlflow ui --backend-store-uri sqlite:///mlruns.db --port 5000
 
-# Run comprehensive test suite (211 tests)
+# Run comprehensive test suite (247 tests)
 pytest -v
 
 # Start FastAPI server directly
