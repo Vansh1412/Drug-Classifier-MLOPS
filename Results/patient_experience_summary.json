@@ -1,0 +1,162 @@
+{
+  "workload": "patient_experience_intelligence",
+  "sprint": 9,
+  "total_reviews": 53766,
+  "unique_drugs": 2637,
+  "unique_conditions": 708,
+  "overall_sentiment": {
+    "high": {
+      "count": 32349,
+      "percentage": 60.17
+    },
+    "low": {
+      "count": 13497,
+      "percentage": 25.1
+    },
+    "neutral": {
+      "count": 7920,
+      "percentage": 14.73
+    }
+  },
+  "mean_rating": 6.9769,
+  "drugs_meeting_threshold": 521,
+  "top_reviewed_drugs": [
+    {
+      "drugName": "Levonorgestrel",
+      "review_count": 1273,
+      "mean_rating": 7.3661,
+      "high_pct": 63.79
+    },
+    {
+      "drugName": "Etonogestrel",
+      "review_count": 1085,
+      "mean_rating": 5.8903,
+      "high_pct": 42.49
+    },
+    {
+      "drugName": "Ethinyl estradiol / norethindrone",
+      "review_count": 903,
+      "mean_rating": 5.5803,
+      "high_pct": 39.42
+    },
+    {
+      "drugName": "Nexplanon",
+      "review_count": 736,
+      "mean_rating": 5.5557,
+      "high_pct": 37.64
+    },
+    {
+      "drugName": "Ethinyl estradiol / norgestimate",
+      "review_count": 673,
+      "mean_rating": 5.63,
+      "high_pct": 39.97
+    },
+    {
+      "drugName": "Ethinyl estradiol / levonorgestrel",
+      "review_count": 615,
+      "mean_rating": 5.652,
+      "high_pct": 38.7
+    },
+    {
+      "drugName": "Phentermine",
+      "review_count": 542,
+      "mean_rating": 8.7509,
+      "high_pct": 85.79
+    },
+    {
+      "drugName": "Sertraline",
+      "review_count": 508,
+      "mean_rating": 7.3327,
+      "high_pct": 65.55
+    },
+    {
+      "drugName": "Escitalopram",
+      "review_count": 455,
+      "mean_rating": 7.789,
+      "high_pct": 70.99
+    },
+    {
+      "drugName": "Mirena",
+      "review_count": 431,
+      "mean_rating": 6.703,
+      "high_pct": 53.13
+    }
+  ],
+  "top_reviewed_conditions": [
+    {
+      "condition": "Birth Control",
+      "review_count": 9648,
+      "mean_rating": 6.0423,
+      "is_missing_category": false
+    },
+    {
+      "condition": "Depression",
+      "review_count": 3095,
+      "mean_rating": 7.104,
+      "is_missing_category": false
+    },
+    {
+      "condition": "Pain",
+      "review_count": 2100,
+      "mean_rating": 7.5829,
+      "is_missing_category": false
+    },
+    {
+      "condition": "Anxiety",
+      "review_count": 1908,
+      "mean_rating": 7.6808,
+      "is_missing_category": false
+    },
+    {
+      "condition": "Acne",
+      "review_count": 1847,
+      "mean_rating": 7.3687,
+      "is_missing_category": false
+    },
+    {
+      "condition": "Bipolar Disorde",
+      "review_count": 1380,
+      "mean_rating": 7.021,
+      "is_missing_category": false
+    },
+    {
+      "condition": "Weight Loss",
+      "review_count": 1248,
+      "mean_rating": 7.9736,
+      "is_missing_category": false
+    },
+    {
+      "condition": "Insomnia",
+      "review_count": 1231,
+      "mean_rating": 6.5979,
+      "is_missing_category": false
+    },
+    {
+      "condition": "Obesity",
+      "review_count": 1189,
+      "mean_rating": 7.6897,
+      "is_missing_category": false
+    },
+    {
+      "condition": "ADHD",
+      "review_count": 1126,
+      "mean_rating": 7.2185,
+      "is_missing_category": false
+    }
+  ],
+  "aspect_mention_percentages": {
+    "side_effects": 19.06,
+    "effectiveness": 18.83,
+    "dosage_administration": 31.81,
+    "cost_affordability": 5.86,
+    "sleep_drowsiness": 15.95,
+    "mental_mood": 24.11,
+    "weight_appetite": 14.55,
+    "withdrawal_dependence": 4.18
+  },
+  "lineage": {
+    "dvc_dataset_hash": "9e9461e2200485dd1f6743ed17dff4c6",
+    "git_commit": "015d0a95ae37abd48cd39e7e73bb021f90d4d4a0",
+    "generated_at": "2026-09-20T05:11:27.347304+00:00"
+  }
+}

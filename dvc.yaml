@@ -59,3 +59,15 @@ stages:
           cache: false
       - Results/nlp_metrics.json:
           cache: false
+
+  patient_experience_analysis:
+    cmd: python -c "from src.patient_experience import generate_patient_experience_report; generate_patient_experience_report()"
+    deps:
+      - Data/reviews/processed/reviews_cleaned.parquet
+      - configs/model_config.yaml
+      - src/patient_experience.py
+    outs:
+      - Results/patient_experience_report.json:
+          cache: false
+      - Results/patient_experience_summary.json:
+          cache: false
