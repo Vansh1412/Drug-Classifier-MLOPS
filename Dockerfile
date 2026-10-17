@@ -3,7 +3,7 @@
 # ─────────────────────────────────────────────────────────────
 
 # ── Stage 1: Builder ──────────────────────────────────────────
-FROM python:3.10-slim AS builder
+FROM python:3.13-slim AS builder
 
 WORKDIR /app
 
@@ -18,7 +18,7 @@ RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
 
 # ── Stage 2: Hardened Runtime ─────────────────────────────────
-FROM python:3.10-slim AS runtime
+FROM python:3.13-slim AS runtime
 
 WORKDIR /app
 
@@ -32,7 +32,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PORT=8000
 
 # Copy installed Python packages and entrypoint binaries from builder
-COPY --from=builder /usr/local/lib/python3.10/site-packages /usr/local/lib/python3.10/site-packages
+COPY --from=builder /usr/local/lib/python3.13/site-packages /usr/local/lib/python3.13/site-packages
 COPY --from=builder /usr/local/bin /usr/local/bin
 
 # Copy only required application source directories with non-root ownership
