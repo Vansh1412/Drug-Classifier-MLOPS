@@ -108,27 +108,51 @@ def reload_model_pipeline() -> None:
         logger.error(f"Failed to reload model pipeline: {exc}")
 
 
+ADMIN_KEY_ENV_VAR = "MEDMLOPS_ADMIN_API_KEY"
 api_key_header_scheme = APIKeyHeader(name="X-API-Key", auto_error=False)
 
 
 def verify_admin_key(
     api_key: str | None = Security(api_key_header_scheme),
 ) -> str:
-    """Verify administrator API key for high-impact model lifecycle actions."""
-    retrain_sec = _cfg.get("retraining", {}).get("security", {})
-    env_var_name = retrain_sec.get("admin_api_key_env", "MEDMLOPS_ADMIN_API_KEY")
-    default_key = retrain_sec.get("default_admin_key", "medmlops-admin-key-sprint6")
-    expected_key = os.getenv(env_var_name, default_key)
+    """Verify administrator API key for privileged lifecycle operations.
 
-    if (
-        not api_key
-        or not expected_key
-        or not hmac.compare_digest(api_key, expected_key)
-    ):
+    Security specification:
+    - Canonical environment variable: MEDMLOPS_ADMIN_API_KEY.
+    - Fail-closed: Missing, empty, or whitespace-only configured credentials
+      immediately reject all administrative requests with 401 Unauthorized.
+    - Zero default credentials: No fallback secret is accepted in any environment.
+    - Constant-time secret comparison via hmac.compare_digest prevents timing inference.
+    - Rejects missing, empty, or whitespace-only X-API-Key headers.
+    - Information leakage defense: Secret values are never logged or exposed in responses.
+    """
+    configured_key = os.getenv(ADMIN_KEY_ENV_VAR)
+
+    # 1. Fail closed if administrative key is not configured or is whitespace
+    if not configured_key or not configured_key.strip():
+        logger.warning(
+            "Administrative request rejected: %s is not configured or empty.",
+            ADMIN_KEY_ENV_VAR,
+        )
+        raise HTTPException(
+            status_code=401,
+            detail="Unauthorized: Administrative authentication is unconfigured or unavailable.",
+        )
+
+    # 2. Reject missing or empty request header
+    if not api_key or not api_key.strip():
         raise HTTPException(
             status_code=401,
             detail="Unauthorized: Invalid or missing administrator API key.",
         )
+
+    # 3. Constant-time secret verification
+    if not hmac.compare_digest(api_key, configured_key):
+        raise HTTPException(
+            status_code=401,
+            detail="Unauthorized: Invalid or missing administrator API key.",
+        )
+
     return api_key
 
 

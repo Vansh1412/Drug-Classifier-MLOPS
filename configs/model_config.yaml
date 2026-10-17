@@ -216,7 +216,6 @@ retraining:
   security:
     api_key_header: "X-API-Key"
     admin_api_key_env: "MEDMLOPS_ADMIN_API_KEY"
-    default_admin_key: "medmlops-admin-key-sprint6"
 
 # ---------------------------------------------------------------------------
 # NLP / Drug Review Intelligence Configuration (Sprint 7)
@@ -509,5 +508,4 @@ nlp_retraining:
   security:
     api_key_header: "X-API-Key"
     admin_api_key_env: "MEDMLOPS_ADMIN_API_KEY"
-    default_admin_key: "medmlops-admin-key-sprint6"
 
