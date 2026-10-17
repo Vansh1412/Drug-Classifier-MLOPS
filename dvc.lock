@@ -11,8 +11,8 @@ stages:
       size: 5828
     - path: configs/model_config.yaml
       hash: md5
-      md5: e46b7cc4151f6d9b381c91097c7cbebf
-      size: 6840
+      md5: d5dc494f4c057b3134f596c714c6aded
+      size: 14456
     - path: src/data_validation.py
       hash: md5
       md5: e46a60111ba141dacc3e3c053002360c
@@ -26,13 +26,13 @@ stages:
       size: 5828
     - path: configs/model_config.yaml
       hash: md5
-      md5: e46b7cc4151f6d9b381c91097c7cbebf
-      size: 6840
+      md5: d5dc494f4c057b3134f596c714c6aded
+      size: 14456
     - path: src
       hash: md5
-      md5: 2e2e32a8279ff8611c05073d12348c96.dir
-      size: 227331
-      nfiles: 24
+      md5: af31cd2a785482843ad51525a58b70da.dir
+      size: 627141
+      nfiles: 40
     - path: train.py
       hash: md5
       md5: 9dd54eeb7f6984632dee792ee2118be1
@@ -72,8 +72,8 @@ stages:
       size: 27637580
     - path: configs/model_config.yaml
       hash: md5
-      md5: 698a32583583810e5b0e8de68236d830
-      size: 7754
+      md5: d5dc494f4c057b3134f596c714c6aded
+      size: 14456
     - path: src/nlp_validation.py
       hash: md5
       md5: 99a28969d5aba05090e7a8ba38009bb4
@@ -88,8 +88,8 @@ stages:
       size: 27637580
     - path: configs/model_config.yaml
       hash: md5
-      md5: 698a32583583810e5b0e8de68236d830
-      size: 7754
+      md5: d5dc494f4c057b3134f596c714c6aded
+      size: 14456
     - path: src/nlp_preprocessing.py
       hash: md5
       md5: fc0f2f6115374e3f47e64b7a9718b91d
@@ -109,8 +109,8 @@ stages:
       size: 49306652
     - path: configs/model_config.yaml
       hash: md5
-      md5: 72f0e02702e41202d66327e28cbbc0b8
-      size: 9137
+      md5: d5dc494f4c057b3134f596c714c6aded
+      size: 14456
     - path: src/nlp_competition.py
       hash: md5
       md5: 47afcca7a472be5cd5795218e913988d
@@ -138,8 +138,8 @@ stages:
       size: 49306652
     - path: configs/model_config.yaml
       hash: md5
-      md5: e0f1c44d07db083714bb0f2b0be464ab
-      size: 11130
+      md5: d5dc494f4c057b3134f596c714c6aded
+      size: 14456
     - path: src/patient_experience.py
       hash: md5
       md5: b6b5c81276f850bb6ee870d7cd2fb140
@@ -163,8 +163,8 @@ stages:
       size: 49306652
     - path: configs/model_config.yaml
       hash: md5
-      md5: d792244e7c998a7916aec547daa06067
-      size: 13508
+      md5: d5dc494f4c057b3134f596c714c6aded
+      size: 14456
     - path: src/nlp_monitoring.py
       hash: md5
       md5: 15cf692ddc0caf29c04bf3b377cd5e8b
@@ -172,5 +172,29 @@ stages:
     outs:
     - path: Results/nlp_drift_report.json
       hash: md5
-      md5: 8c37a326f2066318d9d6bb19884a1a8b
-      size: 12533
+      md5: 9661d4088b38f317ad7eb8b0214b9256
+      size: 12496
+  nlp_retrain:
+    cmd: python -c "from src.nlp_retraining import run_nlp_retraining_cli; 
+      run_nlp_retraining_cli()"
+    deps:
+    - path: Data/reviews/processed/reviews_cleaned.parquet
+      hash: md5
+      md5: 8db15e26ac1e38ea7436ca6795f154cb
+      size: 49306652
+    - path: configs/model_config.yaml
+      hash: md5
+      md5: d5dc494f4c057b3134f596c714c6aded
+      size: 14456
+    - path: src/nlp_competition.py
+      hash: md5
+      md5: 47afcca7a472be5cd5795218e913988d
+      size: 29016
+    - path: src/nlp_model_registry.py
+      hash: md5
+      md5: 1c1eb32102061597092347e01734aef7
+      size: 17803
+    - path: src/nlp_retraining.py
+      hash: md5
+      md5: e271a4e377e00ca43ac534ec961659a3
+      size: 27984

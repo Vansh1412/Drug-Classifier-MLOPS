@@ -81,3 +81,12 @@ stages:
     outs:
       - Results/nlp_drift_report.json:
           cache: false
+
+  nlp_retrain:
+    cmd: python -c "from src.nlp_retraining import run_nlp_retraining_cli; run_nlp_retraining_cli()"
+    deps:
+      - Data/reviews/processed/reviews_cleaned.parquet
+      - configs/model_config.yaml
+      - src/nlp_competition.py
+      - src/nlp_model_registry.py
+      - src/nlp_retraining.py
