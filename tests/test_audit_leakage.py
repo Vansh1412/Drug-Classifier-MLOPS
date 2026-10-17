@@ -341,6 +341,83 @@ class TestSeparabilityAndArtifactIntegrity:
             rule_accuracy == 1.0
         ), f"Rule accuracy must be 1.0 on all 200 records, got {rule_accuracy}"
 
+    def test_algorithmic_boundary_disjointness_without_hardcoded_rule(
+        self, dataset_splits
+    ):
+        """
+        Independently proves the clinical decision boundaries without hardcoding any rule:
+        1. Calculates min Na_to_K for DrugY vs max Na_to_K for non-Y (strictly disjoint).
+        2. Calculates max Age for drugA vs min Age for drugB among BP=HIGH (strictly disjoint).
+        3. Asserts conditional purity of BP=LOW by Cholesterol and BP=NORMAL.
+        4. Fits an independent DecisionTreeClassifier directly to verify 0 training error.
+        """
+        from sklearn.preprocessing import OrdinalEncoder
+        from sklearn.tree import DecisionTreeClassifier
+
+        df = dataset_splits["raw_df"]
+        drug_y = df[df["Drug"] == "DrugY"]
+        non_y = df[df["Drug"] != "DrugY"]
+
+        # 1. Independent Na_to_K threshold disjointness
+        min_y_na_k = drug_y["Na_to_K"].min()
+        max_non_y_na_k = non_y["Na_to_K"].max()
+        assert (
+            min_y_na_k > max_non_y_na_k
+        ), f"Na_to_K overlap detected: DrugY min {min_y_na_k} <= non-Y max {max_non_y_na_k}"
+
+        # 2. Independent Age threshold disjointness among BP=HIGH
+        bp_high = non_y[non_y["BP"] == "HIGH"]
+        max_drugA_age = bp_high[bp_high["Drug"] == "drugA"]["Age"].max()
+        min_drugB_age = bp_high[bp_high["Drug"] == "drugB"]["Age"].min()
+        assert (
+            max_drugA_age < min_drugB_age
+        ), f"Age overlap detected for BP=HIGH: drugA max {max_drugA_age} >= drugB min {min_drugB_age}"
+
+        # 3. Independent purity for BP=LOW and BP=NORMAL
+        bp_low = non_y[non_y["BP"] == "LOW"]
+        assert set(bp_low[bp_low["Cholesterol"] == "HIGH"]["Drug"]) == {"drugC"}
+        assert set(bp_low[bp_low["Cholesterol"] == "NORMAL"]["Drug"]) == {"drugX"}
+
+        bp_norm = non_y[non_y["BP"] == "NORMAL"]
+        assert set(bp_norm["Drug"]) == {"drugX"}
+
+        # 4. Independent decision tree fit achieves 100% training accuracy (zero loss)
+        X_df = df[["Age", "Sex", "BP", "Cholesterol", "Na_to_K"]].copy()
+        oe = OrdinalEncoder()
+        X_df[["Sex", "BP", "Cholesterol"]] = oe.fit_transform(
+            X_df[["Sex", "BP", "Cholesterol"]]
+        )
+        dt = DecisionTreeClassifier(random_state=42)
+        dt.fit(X_df, df["Drug"])
+        dt_acc = dt.score(X_df, df["Drug"])
+        assert (
+            dt_acc == 1.0
+        ), f"Independent decision tree failed to achieve 1.0 accuracy: {dt_acc}"
+
+    def test_evaluation_artifact_lineage_and_metadata_mapping(self, cfg):
+        """Assert evaluation reports strictly match the authoritative artifact and dataset on disk."""
+        with open("Results/metrics.json", "r", encoding="utf-8") as fh:
+            metrics_json = json.load(fh)
+
+        with open("Model/model_metadata.json", "r", encoding="utf-8") as fh:
+            metadata = json.load(fh)
+
+        with open(cfg["data"]["data_path"], "rb") as fh:
+            actual_dataset_hash = hashlib.sha256(fh.read()).hexdigest()
+
+        with open(cfg["champion"]["artifact_path"], "rb") as fh:
+            actual_artifact_hash = hashlib.sha256(fh.read()).hexdigest()
+
+        # Verify lineage hashes match active files on disk
+        assert metrics_json["dataset"]["dataset_sha256"] == actual_dataset_hash
+        assert metrics_json["champion"]["artifact_sha256"] == actual_artifact_hash
+        assert metadata["dataset_sha256"] == actual_dataset_hash
+        assert metadata["artifact_sha256"] == actual_artifact_hash
+
+        # Verify model selection basis is CV to guard against test-set selection leakage
+        assert metrics_json["champion"]["selection_basis"] == "cv"
+        assert metadata["selection_basis"] == "cv"
+
     def test_protected_dataset_sha256_unaltered(self, cfg):
         """Assert Data/drug.csv SHA-256 matches authoritative hash exactly."""
         with open(cfg["data"]["data_path"], "rb") as fh:
