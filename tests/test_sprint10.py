@@ -21,6 +21,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from unittest.mock import patch
 
 import pandas as pd
 import pytest
@@ -423,14 +424,18 @@ class TestOverallCertification:
 
 class TestPersistenceAndSecurity:
     def test_save_and_retrieve_latest_report(
-        self, monitor: NLPMonitor, clean_batch: pd.DataFrame
+        self, monitor: NLPMonitor, clean_batch: pd.DataFrame, tmp_path: Path
     ):
         """Verify saving and retrieving the latest report from disk."""
-        report = monitor.certify_drift(clean_batch, save_report=True)
-        saved_report = monitor.get_latest_report()
-        assert saved_report is not None
-        assert saved_report["report_id"] == report["report_id"]
-        assert Path("Results/nlp_drift_report.json").exists()
+        isolated_report_path = tmp_path / "nlp_drift_report.json"
+        with patch.dict(
+            monitor.nlp_mon_cfg, {"report_path": str(isolated_report_path)}
+        ):
+            report = monitor.certify_drift(clean_batch, save_report=True)
+            saved_report = monitor.get_latest_report()
+            assert saved_report is not None
+            assert saved_report["report_id"] == report["report_id"]
+            assert isolated_report_path.exists()
 
     def test_path_traversal_guard(self, monitor: NLPMonitor):
         """Verify that path traversal attempts in report_id are blocked."""
@@ -465,37 +470,43 @@ class TestAPIIntegration:
         assert "overall_status" in data["certification"]
         assert "disclaimer" in data
 
-    def test_post_nlp_drift_evaluation(self, api_client: TestClient):
+    def test_post_nlp_drift_evaluation(self, api_client: TestClient, tmp_path: Path):
         """Verify POST /monitoring/nlp/drift evaluates an incoming review batch."""
-        payload = {
-            "reviews": [
-                {
-                    "uniqueID": 10001,
-                    "drugName": "Lipitor",
-                    "condition": "High Cholesterol",
-                    "review": "Very effective medication for lowering my LDL levels.",
-                    "rating": 9,
-                    "date": "28-Feb-12",
-                    "usefulCount": 5,
-                },
-                {
-                    "uniqueID": 10002,
-                    "drugName": "Lipitor",
-                    "condition": "High Cholesterol",
-                    "review": "Experienced moderate muscle pain and nausea after 3 weeks.",
-                    "rating": 3,
-                    "date": "15-Mar-13",
-                    "usefulCount": 12,
-                },
-            ]
-        }
-        response = api_client.post("/monitoring/nlp/drift", json=payload)
-        assert response.status_code == 200
-        data = response.json()
-        assert "certification" in data
-        assert "text_length_drift" in data
-        assert "sentiment_drift" in data
-        assert "aspect_drift" in data
+        from src.nlp_monitoring import get_nlp_monitor
+
+        mon = get_nlp_monitor()
+        isolated_report_path = tmp_path / "nlp_drift_report.json"
+        with patch.dict(mon.nlp_mon_cfg, {"report_path": str(isolated_report_path)}):
+            payload = {
+                "reviews": [
+                    {
+                        "uniqueID": 10001,
+                        "drugName": "Lipitor",
+                        "condition": "High Cholesterol",
+                        "review": "Very effective medication for lowering my LDL levels.",
+                        "rating": 9,
+                        "date": "28-Feb-12",
+                        "usefulCount": 5,
+                    },
+                    {
+                        "uniqueID": 10002,
+                        "drugName": "Lipitor",
+                        "condition": "High Cholesterol",
+                        "review": "Experienced moderate muscle pain and nausea after 3 weeks.",
+                        "rating": 3,
+                        "date": "15-Mar-13",
+                        "usefulCount": 12,
+                    },
+                ]
+            }
+            response = api_client.post("/monitoring/nlp/drift", json=payload)
+            assert response.status_code == 200
+            data = response.json()
+            assert "certification" in data
+            assert "text_length_drift" in data
+            assert "sentiment_drift" in data
+            assert "aspect_drift" in data
+            assert isolated_report_path.exists()
 
     def test_post_nlp_drift_invalid_rating_rejected(self, api_client: TestClient):
         """Verify POST /monitoring/nlp/drift rejects out-of-bounds ratings (ge=1, le=10)."""

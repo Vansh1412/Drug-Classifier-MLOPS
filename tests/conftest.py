@@ -1,29 +1,17 @@
-"""Pytest configuration and session-level isolation fixtures.
+"""Pytest configuration and environment fixtures for MedMLOps-X.
 
-Ensures that test suite execution does not mutate tracked repository artifacts
-such as Results/nlp_drift_report.json and monitoring/nlp_retraining_history.json.
+Ensures hermetic test execution with isolated credentials and temporary state.
 """
-
-from pathlib import Path
 
 import pytest
 
+TEST_ADMIN_API_KEY = "medmlops-admin-key-sprint6"
 
-@pytest.fixture(scope="session", autouse=True)
-def preserve_tracked_reporting_artifacts():
-    """Preserve tracked audit and monitoring artifacts across the test session."""
-    drift_report_path = Path("Results/nlp_drift_report.json")
-    history_path = Path("monitoring/nlp_retraining_history.json")
 
-    drift_report_orig = (
-        drift_report_path.read_bytes() if drift_report_path.exists() else None
-    )
-    history_orig = history_path.read_bytes() if history_path.exists() else None
+@pytest.fixture(autouse=True)
+def configure_test_admin_key(monkeypatch: pytest.MonkeyPatch):
+    """Ensure an explicit test administrative API key is set for authorized test requests.
 
-    yield
-
-    # Restore original content after all tests have completed
-    if drift_report_orig is not None:
-        drift_report_path.write_bytes(drift_report_orig)
-    if history_orig is not None:
-        history_path.write_bytes(history_orig)
+    Individual security tests can unset, empty, or modify this using monkeypatch.
+    """
+    monkeypatch.setenv("MEDMLOPS_ADMIN_API_KEY", TEST_ADMIN_API_KEY)

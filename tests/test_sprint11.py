@@ -509,17 +509,17 @@ class TestWorkloadProtection:
 class TestNLPRetrainingOrchestrator:
     """Validate full orchestrator trigger flow, drift handling, and idempotency."""
 
-    def test_orchestrator_skips_pass_report(self, valid_nlp_drift_report):
+    def test_orchestrator_skips_pass_report(self, valid_nlp_drift_report, tmp_path):
         valid_nlp_drift_report["report_id"] = "nlp_drift_pass_test_001"
         valid_nlp_drift_report["certification"]["overall_status"] = "PASS"
-        orchestrator = NLPRetrainingOrchestrator()
+        orchestrator = NLPRetrainingOrchestrator(base_dir=tmp_path)
         res = orchestrator.trigger_retraining(report=valid_nlp_drift_report, force=True)
         assert res["status"] == "REJECTED_BY_CERTIFIER"
         assert "not 'DRIFT'" in res["reason"]
 
-    def test_orchestrator_idempotency_skip(self, valid_nlp_drift_report):
+    def test_orchestrator_idempotency_skip(self, valid_nlp_drift_report, tmp_path):
         valid_nlp_drift_report["report_id"] = "nlp_drift_idempotency_test_002"
-        orchestrator = NLPRetrainingOrchestrator()
+        orchestrator = NLPRetrainingOrchestrator(base_dir=tmp_path)
         # Mock certifier and training execution
         with (
             patch.object(
@@ -559,10 +559,12 @@ class TestNLPRetrainingOrchestrator:
             assert res2["status"] == "SKIPPED"
             assert "Idempotent duplicate" in res2["reason"]
 
-    def test_orchestrator_rejection_leaves_champion_none(self, valid_nlp_drift_report):
+    def test_orchestrator_rejection_leaves_champion_none(
+        self, valid_nlp_drift_report, tmp_path
+    ):
         """Simulate real NLP competition where candidate fails gate (Macro F1 ~0.63 < 0.70)."""
         valid_nlp_drift_report["report_id"] = "nlp_drift_rejection_test_003"
-        orchestrator = NLPRetrainingOrchestrator()
+        orchestrator = NLPRetrainingOrchestrator(base_dir=tmp_path)
         with (
             patch.object(
                 orchestrator.certifier, "certify", return_value=(True, "Certified")
@@ -647,12 +649,18 @@ class TestNLPAPISecurityAndEndpoints:
         assert response.status_code in [400, 500]
         assert "Cannot rollback" in response.json()["detail"]
 
-    def test_trigger_authorized_with_pass_report_rejects(self, valid_nlp_drift_report):
+    def test_trigger_authorized_with_pass_report_rejects(
+        self, valid_nlp_drift_report, tmp_path
+    ):
         valid_nlp_drift_report["certification"]["overall_status"] = "PASS"
-        with patch.object(
-            NLPRetrainingOrchestrator,
-            "_resolve_report",
-            return_value=valid_nlp_drift_report,
+        mock_orch = NLPRetrainingOrchestrator(base_dir=tmp_path)
+        with (
+            patch("src.nlp_retraining.get_nlp_orchestrator", return_value=mock_orch),
+            patch.object(
+                NLPRetrainingOrchestrator,
+                "_resolve_report",
+                return_value=valid_nlp_drift_report,
+            ),
         ):
             response = client.post(
                 "/nlp/retraining/trigger",
@@ -803,7 +811,160 @@ class TestNLPModelRegistrySecurity:
         assert passed is False
         assert "Invalid monitoring report structure" in reason
 
-    def test_resolve_report_rejects_path_traversal(self):
-        orchestrator = NLPRetrainingOrchestrator()
+    def test_resolve_report_rejects_path_traversal(self, tmp_path):
+        orchestrator = NLPRetrainingOrchestrator(base_dir=tmp_path)
         report = orchestrator._resolve_report(report_id="../../sensitive_report")
         assert report is None
+
+
+# ─────────────────────────────────────────────────────────────
+# 9. Administrative Authentication Security (RC1 Final Blocker)
+# ─────────────────────────────────────────────────────────────
+class TestAdministrativeAuthenticationSecurity:
+    """Validate administrative authentication fail-closed behavior, header handling,
+    and guarantee that no hardcoded default credentials authenticate.
+    """
+
+    def test_missing_environment_variable_fails_closed(self, monkeypatch):
+        """When MEDMLOPS_ADMIN_API_KEY is not set in environment, administrative endpoints fail closed."""
+        monkeypatch.delenv("MEDMLOPS_ADMIN_API_KEY", raising=False)
+        response = client.post(
+            "/nlp/retraining/trigger",
+            json={"force": True},
+            headers={"X-API-Key": "any-key-attempted"},
+        )
+        assert response.status_code == 401
+        assert "unconfigured or unavailable" in response.json()["detail"]
+
+    def test_empty_environment_variable_fails_closed(self, monkeypatch):
+        """When MEDMLOPS_ADMIN_API_KEY is empty string, administrative endpoints fail closed."""
+        monkeypatch.setenv("MEDMLOPS_ADMIN_API_KEY", "")
+        response = client.post(
+            "/nlp/retraining/trigger",
+            json={"force": True},
+            headers={"X-API-Key": "any-key-attempted"},
+        )
+        assert response.status_code == 401
+        assert "unconfigured or unavailable" in response.json()["detail"]
+
+    def test_whitespace_environment_variable_fails_closed(self, monkeypatch):
+        """When MEDMLOPS_ADMIN_API_KEY is whitespace only, administrative endpoints fail closed."""
+        monkeypatch.setenv("MEDMLOPS_ADMIN_API_KEY", "   \t\n  ")
+        response = client.post(
+            "/nlp/retraining/trigger",
+            json={"force": True},
+            headers={"X-API-Key": "any-key-attempted"},
+        )
+        assert response.status_code == 401
+        assert "unconfigured or unavailable" in response.json()["detail"]
+
+    def test_missing_request_header_rejected(self, monkeypatch):
+        """When request lacks X-API-Key header, request is rejected with 401."""
+        monkeypatch.setenv("MEDMLOPS_ADMIN_API_KEY", "valid-admin-secret-test")
+        response = client.post("/nlp/retraining/trigger", json={"force": True})
+        assert response.status_code == 401
+        assert "Invalid or missing" in response.json()["detail"]
+
+    def test_empty_request_header_rejected(self, monkeypatch):
+        """When request provides empty X-API-Key header, request is rejected with 401."""
+        monkeypatch.setenv("MEDMLOPS_ADMIN_API_KEY", "valid-admin-secret-test")
+        response = client.post(
+            "/nlp/retraining/trigger",
+            json={"force": True},
+            headers={"X-API-Key": ""},
+        )
+        assert response.status_code == 401
+        assert "Invalid or missing" in response.json()["detail"]
+
+    def test_whitespace_request_header_rejected(self, monkeypatch):
+        """When request provides whitespace-only X-API-Key header, request is rejected with 401."""
+        monkeypatch.setenv("MEDMLOPS_ADMIN_API_KEY", "valid-admin-secret-test")
+        response = client.post(
+            "/nlp/retraining/trigger",
+            json={"force": True},
+            headers={"X-API-Key": "   "},
+        )
+        assert response.status_code == 401
+        assert "Invalid or missing" in response.json()["detail"]
+
+    def test_incorrect_key_rejected(self, monkeypatch):
+        """When request provides incorrect key, request is rejected with 401."""
+        monkeypatch.setenv("MEDMLOPS_ADMIN_API_KEY", "valid-admin-secret-test")
+        response = client.post(
+            "/nlp/retraining/trigger",
+            json={"force": True},
+            headers={"X-API-Key": "incorrect-secret-candidate"},
+        )
+        assert response.status_code == 401
+        assert "Invalid or missing" in response.json()["detail"]
+
+    def test_known_default_key_rejected_when_unconfigured(self, monkeypatch):
+        """Verify the known default key ('medmlops-admin-key-sprint6') CANNOT authenticate when env is unset."""
+        monkeypatch.delenv("MEDMLOPS_ADMIN_API_KEY", raising=False)
+        response = client.post(
+            "/nlp/retraining/trigger",
+            json={"force": True},
+            headers={"X-API-Key": "medmlops-admin-key-sprint6"},
+        )
+        assert response.status_code == 401
+        assert "unconfigured or unavailable" in response.json()["detail"]
+
+    def test_known_default_key_rejected_when_another_key_configured(self, monkeypatch):
+        """Verify the known default key ('medmlops-admin-key-sprint6') CANNOT authenticate when another key is set."""
+        monkeypatch.setenv("MEDMLOPS_ADMIN_API_KEY", "production-isolated-key-2026")
+        response = client.post(
+            "/nlp/retraining/trigger",
+            json={"force": True},
+            headers={"X-API-Key": "medmlops-admin-key-sprint6"},
+        )
+        assert response.status_code == 401
+        assert "Invalid or missing" in response.json()["detail"]
+
+    def test_correct_configured_key_accepted_on_retraining_trigger(
+        self, monkeypatch, tmp_path, valid_nlp_drift_report
+    ):
+        """When correct configured key is provided, request passes authentication."""
+        valid_key = "secure-production-grade-secret-token-789"
+        monkeypatch.setenv("MEDMLOPS_ADMIN_API_KEY", valid_key)
+        valid_nlp_drift_report["certification"]["overall_status"] = "PASS"
+        mock_orch = NLPRetrainingOrchestrator(base_dir=tmp_path)
+        with (
+            patch("src.nlp_retraining.get_nlp_orchestrator", return_value=mock_orch),
+            patch.object(
+                NLPRetrainingOrchestrator,
+                "_resolve_report",
+                return_value=valid_nlp_drift_report,
+            ),
+        ):
+            response = client.post(
+                "/nlp/retraining/trigger",
+                json={"force": True},
+                headers={"X-API-Key": valid_key},
+            )
+            # Authenticated: passed auth and returned orchestrator result
+            assert response.status_code == 200
+            assert response.json()["status"] == "REJECTED_BY_CERTIFIER"
+
+    def test_unauthorized_structured_retraining_and_rollback(self, monkeypatch):
+        """Structured administrative endpoints also enforce authentication and reject unauthenticated requests."""
+        monkeypatch.delenv("MEDMLOPS_ADMIN_API_KEY", raising=False)
+        r1 = client.post("/retraining/trigger", json={})
+        assert r1.status_code == 401
+
+        r2 = client.post("/models/rollback", json={"reason": "Audit test"})
+        assert r2.status_code == 401
+
+        r3 = client.post("/models/nlp/rollback", json={"reason": "Audit test"})
+        assert r3.status_code == 401
+
+    def test_secret_never_leaks_in_responses(self, monkeypatch):
+        """Verify configured secret string never appears in response body on failures."""
+        secret = "ultra-secret-token-never-expose-this-12345"
+        monkeypatch.setenv("MEDMLOPS_ADMIN_API_KEY", secret)
+        response = client.post(
+            "/nlp/retraining/trigger",
+            json={"force": True},
+            headers={"X-API-Key": "wrong-key"},
+        )
+        assert response.status_code == 401
+        assert secret not in response.text
