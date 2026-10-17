@@ -88,7 +88,7 @@
 | **NLP Retraining Engine** | `src/nlp_retraining.py` | Automated retraining trigger, drift certification, dual quality gate, and competition runner |
 | **NLP Model Registry** | `src/nlp_model_registry.py` | Dedicated NLP model registry, bootstrap promotion, atomic rollback, and smoke testing |
 | **NLP Retraining History** | `monitoring/nlp_retraining_history.json` | Auditable trigger history, processed idempotency hashes, and candidate metrics |
-| **Test Suite** | `tests/` | 278 automated pytest tests covering baseline, Sprint 1 through Sprint 11 |
+| **Test Suite** | `tests/` | 288 automated pytest tests covering baseline, Sprint 1 through Sprint 11 (RC1) |
 | **Container** | `Dockerfile`, `docker-compose.yml` | Hardened multi-stage build, non-root user (appuser), active healthcheck |
 | **CI Automation** | `.github/workflows/ci.yml` | Continuous integration: black, ruff, dvc, pytest, Docker build & smoke tests |
 | **CD Automation** | `.github/workflows/cd.yml` | Branch-guarded continuous deployment to HF Spaces |

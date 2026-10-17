@@ -172,7 +172,10 @@ Model/
 
 ## 7. API Management Endpoints
 
-All model management endpoints are privileged administrative operations protected by `X-API-Key`:
+All model management endpoints are privileged administrative operations protected by `X-API-Key` using constant-time comparison (`hmac.compare_digest`):
+- **Canonical Environment Variable**: `MEDMLOPS_ADMIN_API_KEY` (development default: `medmlops-admin-key-sprint6`)
+- **Header**: `X-API-Key`
+- **Path Traversal Protection**: All user-supplied inputs and report IDs are strictly validated to prevent filesystem escape.
 
 | Method | Path | Auth | Description |
 |---|---|---|---|

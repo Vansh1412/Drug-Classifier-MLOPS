@@ -151,7 +151,7 @@ dvc repro
 # Start local MLflow experiment dashboard
 mlflow ui --backend-store-uri sqlite:///mlruns.db --port 5000
 
-# Run comprehensive test suite (278 tests)
+# Run comprehensive test suite (288 tests)
 pytest -v
 
 # Start FastAPI server directly
