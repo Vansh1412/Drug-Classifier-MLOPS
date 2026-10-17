@@ -487,3 +487,27 @@ nlp_monitoring:
     psi_warning: 0.10
     psi_drift: 0.20
 
+# ---------------------------------------------------------------------------
+# NLP Automated Retraining & Lifecycle Configuration (Sprint 11)
+# ---------------------------------------------------------------------------
+nlp_retraining:
+  enabled: true
+  min_monitoring_samples: 20
+  challengers_dir: "Model/nlp/challengers"
+  archive_dir: "Model/nlp/archive"
+  manifest_path: "Model/nlp/registry_manifest.json"
+  trigger_history_path: "monitoring/nlp_retraining_history.json"
+  champion_dir: "Model/nlp/champion"
+  champion_pipeline_path: "Model/nlp/champion/nlp_champion_pipeline.skops"
+  champion_metadata_path: "Model/nlp/nlp_model_metadata.json"
+  quality_gate:
+    min_macro_f1: 0.70
+    min_accuracy: 0.70
+    min_class_recall: 0.40
+    max_allowed_f1_drop: 0.02
+    max_allowed_cv_f1_drop: 0.03
+  security:
+    api_key_header: "X-API-Key"
+    admin_api_key_env: "MEDMLOPS_ADMIN_API_KEY"
+    default_admin_key: "medmlops-admin-key-sprint6"
+
