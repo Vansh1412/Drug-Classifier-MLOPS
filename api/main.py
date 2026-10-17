@@ -288,6 +288,27 @@ class RollbackRequest(BaseModel):
     )
 
 
+class NLPRetrainingTriggerRequest(BaseModel):
+    report_id: str | None = Field(
+        default=None,
+        description="Optional specific NLP drift report ID to certify and retrain on",
+    )
+    force: bool = Field(
+        default=False, description="Whether to bypass idempotency check"
+    )
+    auto_promote: bool = Field(
+        default=True,
+        description="Whether to automatically promote if quality gate passes",
+    )
+
+
+class NLPRollbackRequest(BaseModel):
+    reason: str = Field(
+        default="Manual administrator NLP rollback",
+        description="Reason for rolling back to previous NLP champion",
+    )
+
+
 class PredictionResponse(BaseModel):
     predicted_drug: str = Field(
         ..., description="Recommended drug label predicted by the model"
@@ -772,6 +793,111 @@ def rollback_to_previous_champion(
     except Exception as exc:
         logger.error(f"Rollback failed: {exc}")
         raise HTTPException(status_code=500, detail=f"Rollback failed: {str(exc)}")
+
+
+@app.get("/models/nlp/champion", tags=["NLP Model Registry"])
+def get_active_nlp_champion_details():
+    """
+    Retrieve active NLP champion metadata, version, metrics, and lineage.
+    If no champion has passed the quality gate yet, returns status='NONE'.
+    """
+    try:
+        from src.nlp_model_registry import get_nlp_registry
+
+        registry = get_nlp_registry()
+        active_champ = registry.get_active_champion()
+        if active_champ is None:
+            return {
+                "workload": "nlp",
+                "status": "NONE",
+                "message": "No NLP model has passed the production quality gate. NLP Champion is currently NONE.",
+                "active_champion": None,
+                "manifest": registry.get_manifest(),
+            }
+        return {
+            "workload": "nlp",
+            "status": "ACTIVE",
+            "active_champion": active_champ,
+            "manifest": registry.get_manifest(),
+        }
+    except Exception as exc:
+        logger.error(f"Failed to retrieve NLP champion details: {exc}")
+        raise HTTPException(
+            status_code=500, detail="Failed to retrieve NLP champion details."
+        )
+
+
+@app.get("/nlp/retraining/status", tags=["NLP Lifecycle"])
+def get_nlp_retraining_status():
+    """
+    Retrieve current NLP retraining state machine status, active champion,
+    and trigger audit history.
+    """
+    try:
+        from src.nlp_retraining import get_nlp_orchestrator
+
+        orchestrator = get_nlp_orchestrator()
+        return orchestrator.get_status()
+    except Exception as exc:
+        logger.error(f"Failed to retrieve NLP retraining status: {exc}")
+        raise HTTPException(
+            status_code=500, detail="Failed to retrieve NLP retraining status."
+        )
+
+
+@app.post("/nlp/retraining/trigger", tags=["NLP Lifecycle"])
+def trigger_automated_nlp_retraining(
+    request: NLPRetrainingTriggerRequest = NLPRetrainingTriggerRequest(),
+    _: str = Depends(verify_admin_key),
+):
+    """
+    Trigger certified NLP model retraining workflow.
+    Requires administrator authorization via X-API-Key header.
+    Only certified DRIFT triggers retraining; PASS/WARNING/ERROR are rejected.
+    """
+    try:
+        from src.nlp_retraining import get_nlp_orchestrator
+
+        orchestrator = get_nlp_orchestrator()
+        res = orchestrator.trigger_retraining(
+            report_id=request.report_id,
+            force=request.force,
+            auto_promote=request.auto_promote,
+        )
+        return res
+    except Exception as exc:
+        logger.error(f"NLP retraining trigger failed: {exc}")
+        raise HTTPException(
+            status_code=500, detail="Automated NLP retraining workflow failed."
+        )
+
+
+@app.post("/models/nlp/rollback", tags=["NLP Model Registry"])
+def rollback_to_previous_nlp_champion(
+    request: NLPRollbackRequest = NLPRollbackRequest(),
+    _: str = Depends(verify_admin_key),
+):
+    """
+    Rollback active NLP champion to the previously archived champion.
+    Requires administrator authorization via X-API-Key header.
+    """
+    try:
+        from src.nlp_model_registry import get_nlp_registry
+
+        registry = get_nlp_registry()
+        success = registry.rollback(reason=request.reason)
+        if success:
+            return {
+                "status": "SUCCESS",
+                "message": f"Successfully rolled back NLP champion ({request.reason})",
+                "manifest": registry.get_manifest(),
+            }
+        raise HTTPException(status_code=500, detail="NLP rollback failed.")
+    except RuntimeError as rerr:
+        raise HTTPException(status_code=400, detail=str(rerr))
+    except Exception as exc:
+        logger.error(f"NLP rollback failed: {exc}")
+        raise HTTPException(status_code=500, detail=f"NLP rollback failed: {str(exc)}")
 
 
 # --- Entry Point ---
