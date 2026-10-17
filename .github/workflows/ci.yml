@@ -34,10 +34,17 @@ jobs:
       - name: Lint Check (Ruff)
         run: ruff check .
 
+      - name: Generate Derived NLP Review Parquet
+        run: |
+          python -c "from src.nlp_preprocessing import run_review_preprocessing; run_review_preprocessing('Data/reviews/drugsComTest_raw.csv')"
+
       - name: Verify DVC Pipeline Status
         run: dvc status
 
       - name: Run Test Suite
+        env:
+          MEDMLOPS_ADMIN_API_KEY: "medmlops-admin-key-sprint6"
+          MLFLOW_TRACKING_URI: "sqlite:///mlruns.db"
         run: pytest -v
 
       - name: Build Hardened Docker Image

@@ -9,6 +9,7 @@ Covers:
   - Backward compatibility with existing pipeline and Skops artifacts
 """
 
+import os
 import sys
 from pathlib import Path
 
@@ -23,6 +24,81 @@ from src.config import get_trusted_types, load_config
 from src.tracking import get_dvc_dataset_hash, get_git_commit_sha
 
 
+def _bootstrap_sprint2_mlflow_runs(cfg: dict, experiment_id: str) -> None:
+    """Bootstrap deterministic candidate and champion runs into MLflow for testing.
+
+    Ensures MLflow tracking and lineage tests have real runs, parameters,
+    metrics, tags, and artifacts without depending on a developer's local state.
+    """
+    from sklearn.model_selection import train_test_split
+    from sklearn.pipeline import Pipeline
+
+    from src.champion_selection import select_champion
+    from src.data_validation import load_and_validate
+    from src.evaluate import train_and_evaluate
+    from src.model_registry import build_model_candidates
+    from src.preprocessing import build_preprocessor
+    from src.tracking import get_lineage_metadata, log_candidate_run, log_champion_run
+
+    data_path = cfg["data"]["data_path"]
+    drug_df = load_and_validate(data_path, cfg)
+    shuffle_seed = cfg["data"]["shuffle_random_state"]
+    split_seed = cfg["data"]["split_random_state"]
+    test_size = cfg["data"]["test_size"]
+
+    drug_df = drug_df.sample(frac=1, random_state=shuffle_seed).reset_index(drop=True)
+    X = drug_df.drop(cfg["data"]["target_column"], axis=1).values
+    y = drug_df[cfg["data"]["target_column"]].values
+
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=test_size, random_state=split_seed, stratify=y
+    )
+
+    candidates = build_model_candidates(cfg)
+    lineage = get_lineage_metadata(cfg)
+    all_results = []
+
+    mlflow.set_experiment(experiment_id=experiment_id)
+
+    for name, estimator in candidates.items():
+        preprocessor = build_preprocessor(cfg)
+        pipeline = Pipeline([("preprocessing", preprocessor), ("model", estimator)])
+        model_params = {
+            k: v
+            for k, v in cfg["models"][name]["params"].items()
+            if not k.startswith("#")
+        }
+        res = train_and_evaluate(
+            pipeline, X_train, y_train, X_test, y_test, cfg, name, model_params
+        )
+        all_results.append({**res, "_pipeline": pipeline})
+        log_candidate_run(name, estimator, res, cfg, lineage)
+
+    serializable_results = [
+        {k: v for k, v in r.items() if not k.startswith("_")} for r in all_results
+    ]
+    pipeline_map = {r["model_name"]: r["_pipeline"] for r in all_results}
+
+    champion_result, challengers = select_champion(serializable_results, cfg)
+    champion_pipeline = pipeline_map[champion_result["model_name"]]
+
+    passing_names = {champion_result["model_name"]} | {
+        c["model_name"] for c in challengers
+    }
+    failing_results = [
+        r for r in serializable_results if r["model_name"] not in passing_names
+    ]
+
+    log_champion_run(
+        champion_result,
+        challengers,
+        failing_results,
+        champion_pipeline,
+        cfg,
+        lineage,
+    )
+
+
 @pytest.fixture
 def config():
     return load_config()
@@ -30,9 +106,12 @@ def config():
 
 @pytest.fixture
 def mlflow_client(config):
-    tracking_uri = config.get("mlflow", {}).get("tracking_uri", "sqlite:///mlruns.db")
+    tracking_uri = os.environ.get(
+        "MLFLOW_TRACKING_URI",
+        config.get("mlflow", {}).get("tracking_uri", "sqlite:///mlruns.db"),
+    )
     mlflow.set_tracking_uri(tracking_uri)
-    return mlflow.tracking.MlflowClient()
+    return mlflow.tracking.MlflowClient(tracking_uri=tracking_uri)
 
 
 @pytest.fixture
@@ -41,9 +120,17 @@ def mlflow_experiment(config, mlflow_client):
         "experiment_name", "MedMLOps-X-Drug-Classifier"
     )
     exp = mlflow_client.get_experiment_by_name(exp_name)
-    assert (
-        exp is not None
-    ), f"MLflow experiment '{exp_name}' not found. Run training first."
+    if exp is None:
+        exp_id = mlflow_client.create_experiment(exp_name)
+        exp = mlflow_client.get_experiment(exp_id)
+
+    runs = mlflow_client.search_runs(
+        experiment_ids=[exp.experiment_id],
+        filter_string="tags.model_type = 'candidate'",
+    )
+    if len(runs) < 4:
+        _bootstrap_sprint2_mlflow_runs(config, exp.experiment_id)
+
     return exp
 
 
