@@ -14,8 +14,12 @@ import sys
 from pathlib import Path
 from typing import Any
 
-import mlflow
-import mlflow.sklearn
+try:
+    import mlflow
+    import mlflow.sklearn
+except ImportError:
+    mlflow = None  # type: ignore
+
 import yaml
 
 from src.config import get_trusted_types
@@ -73,6 +77,11 @@ def setup_mlflow(cfg: dict[str, Any]) -> str:
     Returns:
         The active experiment ID.
     """
+    if mlflow is None:
+        raise ImportError(
+            "mlflow is required for MLflow experiment tracking but is not installed."
+        )
+
     mlflow_cfg = cfg.get("mlflow", {})
     tracking_uri = mlflow_cfg.get("tracking_uri", "sqlite:///mlruns.db")
     experiment_name = mlflow_cfg.get("experiment_name", "MedMLOps-X-Drug-Classifier")
@@ -101,6 +110,11 @@ def log_candidate_run(
     Returns:
         The MLflow run_id.
     """
+    if mlflow is None:
+        raise ImportError(
+            "mlflow is required for MLflow candidate logging but is not installed."
+        )
+
     with mlflow.start_run(run_name=f"candidate-{name}", nested=True) as run:
         # 1. Tags
         tags = {
@@ -169,6 +183,11 @@ def log_champion_run(
     Returns:
         The champion MLflow run_id.
     """
+    if mlflow is None:
+        raise ImportError(
+            "mlflow is required for MLflow champion logging but is not installed."
+        )
+
     champ_name = champion_result["model_name"]
 
     with mlflow.start_run(run_name=f"champion-{champ_name}", nested=False) as run:
