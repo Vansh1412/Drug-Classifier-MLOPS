@@ -87,15 +87,18 @@ curl http://localhost:8000/models/champion
 # 9. Query current retraining engine status and trigger history
 curl http://localhost:8000/retraining/status
 
+# Note: Set your administrator secret in your environment before invoking administrative endpoints:
+# export MEDMLOPS_ADMIN_API_KEY="your-secure-admin-token"
+
 # 10. Securely trigger drift-certified retraining (requires Admin API Key)
 curl -X POST http://localhost:8000/retraining/trigger \
   -H "Content-Type: application/json" \
-  -H "X-API-Key: medmlops-admin-key-sprint6" \
+  -H "X-API-Key: $MEDMLOPS_ADMIN_API_KEY" \
   -d '{"report_id": "latest", "auto_promote": true}'
 
 # 11. Securely roll back to previous champion model (requires Admin API Key)
 curl -X POST http://localhost:8000/models/rollback \
-  -H "X-API-Key: medmlops-admin-key-sprint6"
+  -H "X-API-Key: $MEDMLOPS_ADMIN_API_KEY"
 
 # 12. Evaluate batch of patient reviews for NLP data & distribution drift
 curl -X POST http://localhost:8000/monitoring/nlp/drift \
@@ -114,13 +117,13 @@ curl http://localhost:8000/nlp/retraining/status
 # 16. Securely trigger NLP retraining on certified DRIFT (requires Admin API Key)
 curl -X POST http://localhost:8000/nlp/retraining/trigger \
   -H "Content-Type: application/json" \
-  -H "X-API-Key: medmlops-admin-key-sprint6" \
+  -H "X-API-Key: $MEDMLOPS_ADMIN_API_KEY" \
   -d '{"force": false, "auto_promote": true}'
 
 # 17. Securely roll back NLP champion to previous archived model (requires Admin API Key)
 curl -X POST http://localhost:8000/models/nlp/rollback \
   -H "Content-Type: application/json" \
-  -H "X-API-Key: medmlops-admin-key-sprint6" \
+  -H "X-API-Key: $MEDMLOPS_ADMIN_API_KEY" \
   -d '{"reason": "Manual rollback"}'
 ```
 
