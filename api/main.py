@@ -1,3 +1,4 @@
+import hmac
 import json
 import logging
 import os
@@ -119,7 +120,11 @@ def verify_admin_key(
     default_key = retrain_sec.get("default_admin_key", "medmlops-admin-key-sprint6")
     expected_key = os.getenv(env_var_name, default_key)
 
-    if not api_key or api_key != expected_key:
+    if (
+        not api_key
+        or not expected_key
+        or not hmac.compare_digest(api_key, expected_key)
+    ):
         raise HTTPException(
             status_code=401,
             detail="Unauthorized: Invalid or missing administrator API key.",
