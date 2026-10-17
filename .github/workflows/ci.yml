@@ -56,13 +56,21 @@ jobs:
           docker run -d --name medmlops-container -p 8000:8000 medmlops-x:local
 
           echo "Waiting for container health check..."
+          HEALTHY=0
           for i in $(seq 1 30); do
             if curl -s -f http://localhost:8000/health > /dev/null; then
               echo "Container reached healthy state in $i seconds"
+              HEALTHY=1
               break
             fi
             sleep 1
           done
+
+          if [ $HEALTHY -eq 0 ]; then
+            echo "ERROR: Container failed to reach healthy state within 30 seconds!"
+            docker logs medmlops-container
+            exit 1
+          fi
 
           echo "=== 1. Health Endpoint Smoke Test ==="
           HEALTH_RESP=$(curl -s -f http://localhost:8000/health)

@@ -29,11 +29,11 @@ RUN groupadd --gid 10001 appgroup && \
 # Environment configuration
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    PORT=8000
+    PORT=8000 \
+    PYTHONPATH=/app
 
 # Copy installed Python packages and entrypoint binaries from builder
-COPY --from=builder /usr/local/lib/python3.13/site-packages /usr/local/lib/python3.13/site-packages
-COPY --from=builder /usr/local/bin /usr/local/bin
+COPY --from=builder /usr/local /usr/local
 
 # Copy only required application source directories with non-root ownership
 COPY --chown=appuser:appgroup api/ ./api/
