@@ -213,6 +213,14 @@ class NLPModelRegistry:
         chal_path = Path(challenger_artifact_path)
         if not chal_path.is_absolute():
             chal_path = (self.base_dir / chal_path).resolve()
+        else:
+            chal_path = chal_path.resolve()
+
+        if not chal_path.is_relative_to(self.base_dir):
+            raise ValueError(
+                f"Path traversal attempt in promote_challenger: {chal_path}"
+            )
+
         if not chal_path.exists():
             raise FileNotFoundError(f"Challenger artifact does not exist: {chal_path}")
 
@@ -373,6 +381,9 @@ class NLPModelRegistry:
             )
 
         archived_art = (self.base_dir / archived_art_rel).resolve()
+        if not archived_art.is_relative_to(self.base_dir):
+            raise ValueError(f"Path traversal attempt in rollback: {archived_art}")
+
         if not archived_art.exists():
             raise FileNotFoundError(
                 f"Archived artifact missing from disk: {archived_art}"
@@ -382,6 +393,10 @@ class NLPModelRegistry:
         shutil.copy2(archived_art, self.champion_pipeline_path)
         if archived_meta_rel:
             archived_meta = (self.base_dir / archived_meta_rel).resolve()
+            if not archived_meta.is_relative_to(self.base_dir):
+                raise ValueError(
+                    f"Path traversal attempt in rollback metadata: {archived_meta}"
+                )
             if archived_meta.exists():
                 shutil.copy2(archived_meta, self.champion_metadata_path)
 

@@ -22,6 +22,7 @@ from __future__ import annotations
 import hashlib
 import json
 import logging
+import math
 import platform
 import sys
 import time
@@ -81,6 +82,13 @@ def compute_file_sha256(path: Path | str) -> str:
     return h.hexdigest()
 
 
+def _is_valid_metric(val: Any) -> bool:
+    """Validate that a metric value is a finite numerical float/int (not NaN or Inf)."""
+    if val is None or not isinstance(val, (int, float)):
+        return False
+    return not (math.isnan(val) or math.isinf(val))
+
+
 class NLPDriftCertifier:
     """Evaluates NLP drift reports to determine if automated retraining is justified."""
 
@@ -93,10 +101,17 @@ class NLPDriftCertifier:
         """Certify whether an NLP monitoring report warrants automated retraining.
 
         Rules:
+        - report must be a valid dictionary.
         - overall_status must be 'DRIFT' (PASS, WARNING, ERROR rejected).
         - data_quality status must not be 'ERROR'.
         - current serving samples >= min_samples.
         """
+        if not isinstance(report, dict):
+            return (
+                False,
+                "Invalid monitoring report structure: expected dictionary.",
+            )
+
         cert = report.get("certification", {})
         overall_status = cert.get("overall_status", "PASS")
 
@@ -178,7 +193,10 @@ class NLPIdempotencyManager:
         self, report_id: str, champion_version: str, dataset_hash: str
     ) -> str:
         """Compute SHA256 idempotency fingerprint."""
-        raw = f"{report_id}::{champion_version}::{dataset_hash}"
+        s_rep = str(report_id or "unknown")
+        s_champ = str(champion_version or "NONE")
+        s_data = str(dataset_hash or "unknown")
+        raw = f"{s_rep}::{s_champ}::{s_data}"
         return hashlib.sha256(raw.encode("utf-8")).hexdigest()[:16]
 
     def is_duplicate(self, trigger_hash: str) -> bool:
@@ -230,43 +248,75 @@ class NLPQualityGate:
         """
         failures: list[str] = []
 
+        if not isinstance(cv_metrics, dict) or not isinstance(test_metrics, dict):
+            return (
+                False,
+                [
+                    "Invalid metric structures: cv_metrics and test_metrics must be dictionaries."
+                ],
+            )
+
         # 1. Absolute Gate
-        cv_f1 = cv_metrics.get("cv_macro_f1_mean", 0.0)
-        if cv_f1 < self.min_macro_f1:
+        cv_f1 = cv_metrics.get("cv_macro_f1_mean")
+        if not _is_valid_metric(cv_f1):
+            failures.append("CV Macro F1 is missing, NaN, or non-finite.")
+        elif cv_f1 < self.min_macro_f1:
             failures.append(
                 f"CV Macro F1 ({cv_f1:.4f}) below absolute threshold ({self.min_macro_f1:.4f})"
             )
 
-        test_f1 = test_metrics.get("test_macro_f1", 0.0)
-        if test_f1 < self.min_macro_f1:
+        test_f1 = test_metrics.get("test_macro_f1")
+        if not _is_valid_metric(test_f1):
+            failures.append("Test Macro F1 is missing, NaN, or non-finite.")
+        elif test_f1 < self.min_macro_f1:
             failures.append(
                 f"Test Macro F1 ({test_f1:.4f}) below absolute threshold ({self.min_macro_f1:.4f})"
             )
 
-        test_acc = test_metrics.get("test_accuracy", 0.0)
-        if test_acc < self.min_accuracy:
+        test_acc = test_metrics.get("test_accuracy")
+        if not _is_valid_metric(test_acc):
+            failures.append("Test Accuracy is missing, NaN, or non-finite.")
+        elif test_acc < self.min_accuracy:
             failures.append(
                 f"Test Accuracy ({test_acc:.4f}) below absolute threshold ({self.min_accuracy:.4f})"
             )
 
-        class_metrics = test_metrics.get("class_metrics", {})
-        for cls_name, c_data in class_metrics.items():
-            recall_val = c_data.get("recall", 0.0)
-            if recall_val < self.min_class_recall:
-                failures.append(
-                    f"Class '{cls_name}' recall ({recall_val:.4f}) below minimum threshold ({self.min_class_recall:.4f})"
-                )
+        required_classes = ["low", "neutral", "high"]
+        class_metrics = test_metrics.get("class_metrics")
+        if not isinstance(class_metrics, dict):
+            failures.append("Class metrics missing or invalid dictionary structure.")
+        else:
+            for cls_name in required_classes:
+                c_data = class_metrics.get(cls_name)
+                if not isinstance(c_data, dict):
+                    failures.append(f"Class '{cls_name}' metrics missing.")
+                    continue
+                recall_val = c_data.get("recall")
+                if not _is_valid_metric(recall_val):
+                    failures.append(
+                        f"Class '{cls_name}' recall is missing, NaN, or non-finite."
+                    )
+                elif recall_val < self.min_class_recall:
+                    failures.append(
+                        f"Class '{cls_name}' recall ({recall_val:.4f}) below minimum threshold ({self.min_class_recall:.4f})"
+                    )
 
         # 2. Comparative Non-Regression Gate (Only when champion exists)
         if not is_bootstrap and champion_metrics is not None:
-            champ_f1 = float(
-                champion_metrics.get("test_macro_f1")
-                or champion_metrics.get("macro_f1", 0.0)
-            )
-            if test_f1 < (champ_f1 - self.max_allowed_f1_drop):
-                failures.append(
-                    f"Test Macro F1 ({test_f1:.4f}) regressed compared to champion ({champ_f1:.4f}) beyond margin ({self.max_allowed_f1_drop:.4f})"
-                )
+            if not isinstance(champion_metrics, dict):
+                failures.append("Champion metrics are invalid dictionary structure.")
+            else:
+                raw_champ_f1 = champion_metrics.get(
+                    "test_macro_f1"
+                ) or champion_metrics.get("macro_f1")
+                if not _is_valid_metric(raw_champ_f1):
+                    failures.append("Champion Macro F1 is missing, NaN, or non-finite.")
+                elif _is_valid_metric(test_f1) and test_f1 < (
+                    float(raw_champ_f1) - self.max_allowed_f1_drop
+                ):
+                    failures.append(
+                        f"Test Macro F1 ({test_f1:.4f}) regressed compared to champion ({float(raw_champ_f1):.4f}) beyond margin ({self.max_allowed_f1_drop:.4f})"
+                    )
 
         return (len(failures) == 0, failures)
 
@@ -315,7 +365,12 @@ class NLPRetrainingOrchestrator:
         latest_file = results_dir / "nlp_drift_report.json"
 
         if report_id:
-            specific_file = results_dir / f"{report_id}.json"
+            specific_file = (results_dir / f"{report_id}.json").resolve()
+            if not specific_file.is_relative_to(results_dir):
+                logger.warning(
+                    f"Path traversal attempt detected in report_id: '{report_id}'"
+                )
+                return None
             if specific_file.exists():
                 try:
                     with open(specific_file, "r", encoding="utf-8") as fh:
