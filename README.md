@@ -104,6 +104,24 @@ curl -X POST http://localhost:8000/monitoring/nlp/drift \
 
 # 13. Query latest persisted NLP drift report
 curl http://localhost:8000/monitoring/nlp/latest
+
+# 14. Query active NLP champion (returns status="NONE" when unpromoted)
+curl http://localhost:8000/models/nlp/champion
+
+# 15. Query NLP retraining state machine status & history
+curl http://localhost:8000/nlp/retraining/status
+
+# 16. Securely trigger NLP retraining on certified DRIFT (requires Admin API Key)
+curl -X POST http://localhost:8000/nlp/retraining/trigger \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: medmlops-admin-key-sprint6" \
+  -d '{"force": false, "auto_promote": true}'
+
+# 17. Securely roll back NLP champion to previous archived model (requires Admin API Key)
+curl -X POST http://localhost:8000/models/nlp/rollback \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: medmlops-admin-key-sprint6" \
+  -d '{"reason": "Manual rollback"}'
 ```
 
 ## Run Locally
@@ -124,13 +142,16 @@ python -c "from src.patient_experience import generate_patient_experience_report
 # Run NLP review drift monitoring & certification
 python -c "from src.nlp_monitoring import run_nlp_monitoring; run_nlp_monitoring()"
 
+# Run NLP automated retraining pipeline CLI
+python -c "from src.nlp_retraining import run_nlp_retraining_cli; run_nlp_retraining_cli()"
+
 # Or reproduce via DVC pipeline
 dvc repro
 
 # Start local MLflow experiment dashboard
 mlflow ui --backend-store-uri sqlite:///mlruns.db --port 5000
 
-# Run comprehensive test suite (247 tests)
+# Run comprehensive test suite (278 tests)
 pytest -v
 
 # Start FastAPI server directly

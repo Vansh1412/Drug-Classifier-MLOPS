@@ -85,7 +85,10 @@
 | **Patient Experience Reports** | `Results/patient_experience_report.json`, `Results/patient_experience_summary.json` | Machine-readable full and compact patient experience intelligence reports |
 | **NLP Monitoring Engine** | `src/nlp_monitoring.py` | Statistical drift (length, vocabulary, TF-IDF, sentiment, rating, aspect, category, prediction) and certification |
 | **NLP Monitoring Reports** | `Results/nlp_drift_report.json`, `monitoring/nlp_reports/` | Comprehensive NLP drift and data quality reports |
-| **Test Suite** | `tests/` | 247 automated pytest tests covering baseline, Sprint 1 through Sprint 10 |
+| **NLP Retraining Engine** | `src/nlp_retraining.py` | Automated retraining trigger, drift certification, dual quality gate, and competition runner |
+| **NLP Model Registry** | `src/nlp_model_registry.py` | Dedicated NLP model registry, bootstrap promotion, atomic rollback, and smoke testing |
+| **NLP Retraining History** | `monitoring/nlp_retraining_history.json` | Auditable trigger history, processed idempotency hashes, and candidate metrics |
+| **Test Suite** | `tests/` | 278 automated pytest tests covering baseline, Sprint 1 through Sprint 11 |
 | **Container** | `Dockerfile`, `docker-compose.yml` | Hardened multi-stage build, non-root user (appuser), active healthcheck |
 | **CI Automation** | `.github/workflows/ci.yml` | Continuous integration: black, ruff, dvc, pytest, Docker build & smoke tests |
 | **CD Automation** | `.github/workflows/cd.yml` | Branch-guarded continuous deployment to HF Spaces |
@@ -99,6 +102,7 @@
 | **NLP Competition Docs** | `docs/nlp-model-competition.md` | Classical NLP model competition, TF-IDF, CV Macro F1, and quality gate |
 | **Patient Experience Docs** | `docs/patient-experience-intelligence.md` | Patient experience analytics, aspect extraction, and TF-IDF similarity |
 | **NLP Monitoring Docs** | `docs/nlp-monitoring.md` | NLP statistical drift methodology, baseline reference, aspect tracking, and API guide |
+| **NLP Retraining Docs** | `docs/nlp-retraining.md` | NLP automated retraining architecture, bootstrap promotion, quality gates, and rollback guide |
 
 ## 3. Medical Safety Boundary
 
