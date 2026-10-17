@@ -151,6 +151,46 @@
       "reason": "Overall status is 'PASS', not 'DRIFT'. Retraining not required.",
       "trigger_hash": "b9ebddd35fe7f058",
       "timestamp": "2026-10-17T13:40:26.876885+00:00"
+    },
+    {
+      "job_id": "nlp_retrain_20261017_134651_b3ea40",
+      "report_id": "nlp_drift_pass_test_001",
+      "status": "REJECTED_BY_CERTIFIER",
+      "reason": "Overall status is 'PASS', not 'DRIFT'. Retraining not required.",
+      "trigger_hash": "92ed9d7449ce53c3",
+      "timestamp": "2026-10-17T13:46:51.032992+00:00"
+    },
+    {
+      "job_id": "nlp_retrain_20261017_134651_a3d489",
+      "report_id": "nlp_drift_idempotency_test_002",
+      "status": "REJECTED",
+      "candidate": "logistic_regression",
+      "failure_reasons": [
+        "CV Macro F1 (0.6200) below absolute threshold (0.7000)",
+        "Test Macro F1 (0.6300) below absolute threshold (0.7000)"
+      ],
+      "trigger_hash": "d36d2c1c528196eb",
+      "timestamp": "2026-10-17T13:46:51.566957+00:00"
+    },
+    {
+      "job_id": "nlp_retrain_20261017_134651_ef5d2f",
+      "report_id": "nlp_drift_rejection_test_003",
+      "status": "REJECTED",
+      "candidate": "logistic_regression",
+      "failure_reasons": [
+        "CV Macro F1 (0.6242) below absolute threshold (0.7000)",
+        "Test Macro F1 (0.6332) below absolute threshold (0.7000)"
+      ],
+      "trigger_hash": "cbf11ec26a615311",
+      "timestamp": "2026-10-17T13:46:51.765743+00:00"
+    },
+    {
+      "job_id": "nlp_retrain_20261017_134652_9349aa",
+      "report_id": "nlp_drift_test_fixture_001",
+      "status": "REJECTED_BY_CERTIFIER",
+      "reason": "Overall status is 'PASS', not 'DRIFT'. Retraining not required.",
+      "trigger_hash": "b9ebddd35fe7f058",
+      "timestamp": "2026-10-17T13:46:52.679489+00:00"
     }
   ],
   "processed_hashes": [
