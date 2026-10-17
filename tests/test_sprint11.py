@@ -663,3 +663,147 @@ class TestNLPAPISecurityAndEndpoints:
             data = response.json()
             assert data["status"] == "REJECTED_BY_CERTIFIER"
             assert "not 'DRIFT'" in data["reason"]
+
+
+# ─────────────────────────────────────────────────────────────
+# 8. Hardening & Security Audit Tests (Sprint 11 RC1)
+# ─────────────────────────────────────────────────────────────
+class TestNLPQualityGateHardening:
+    """Verify quality gate rejects NaN, Inf, non-numeric, or missing metric structures."""
+
+    def test_quality_gate_rejects_nan_cv_macro_f1(self):
+        gate = NLPQualityGate()
+        cv_metrics = {"cv_macro_f1_mean": float("nan")}
+        test_metrics = {
+            "test_macro_f1": 0.73,
+            "test_accuracy": 0.75,
+            "class_metrics": {
+                "low": {"recall": 0.45},
+                "neutral": {"recall": 0.42},
+                "high": {"recall": 0.85},
+            },
+        }
+        passed, reasons = gate.evaluate(cv_metrics, test_metrics, is_bootstrap=True)
+        assert passed is False
+        assert any("NaN, or non-finite" in r for r in reasons)
+
+    def test_quality_gate_rejects_nan_test_macro_f1(self):
+        gate = NLPQualityGate()
+        cv_metrics = {"cv_macro_f1_mean": 0.72}
+        test_metrics = {
+            "test_macro_f1": float("nan"),
+            "test_accuracy": 0.75,
+            "class_metrics": {
+                "low": {"recall": 0.45},
+                "neutral": {"recall": 0.42},
+                "high": {"recall": 0.85},
+            },
+        }
+        passed, reasons = gate.evaluate(cv_metrics, test_metrics, is_bootstrap=True)
+        assert passed is False
+        assert any("NaN, or non-finite" in r for r in reasons)
+
+    def test_quality_gate_rejects_inf_accuracy(self):
+        gate = NLPQualityGate()
+        cv_metrics = {"cv_macro_f1_mean": 0.72}
+        test_metrics = {
+            "test_macro_f1": 0.73,
+            "test_accuracy": float("inf"),
+            "class_metrics": {
+                "low": {"recall": 0.45},
+                "neutral": {"recall": 0.42},
+                "high": {"recall": 0.85},
+            },
+        }
+        passed, reasons = gate.evaluate(cv_metrics, test_metrics, is_bootstrap=True)
+        assert passed is False
+        assert any("NaN, or non-finite" in r for r in reasons)
+
+    def test_quality_gate_rejects_nan_class_recall(self):
+        gate = NLPQualityGate()
+        cv_metrics = {"cv_macro_f1_mean": 0.72}
+        test_metrics = {
+            "test_macro_f1": 0.73,
+            "test_accuracy": 0.75,
+            "class_metrics": {
+                "low": {"recall": 0.45},
+                "neutral": {"recall": float("nan")},
+                "high": {"recall": 0.85},
+            },
+        }
+        passed, reasons = gate.evaluate(cv_metrics, test_metrics, is_bootstrap=True)
+        assert passed is False
+        assert any(
+            "Class 'neutral' recall is missing, NaN, or non-finite." in r
+            for r in reasons
+        )
+
+    def test_quality_gate_rejects_non_dict_metrics(self):
+        gate = NLPQualityGate()
+        passed, reasons = gate.evaluate("invalid", None, is_bootstrap=True)  # type: ignore
+        assert passed is False
+        assert any("Invalid metric structures" in r for r in reasons)
+
+    def test_quality_gate_rejects_nan_comparative_champion(self):
+        gate = NLPQualityGate()
+        cv_metrics = {"cv_macro_f1_mean": 0.72}
+        test_metrics = {
+            "test_macro_f1": 0.73,
+            "test_accuracy": 0.75,
+            "class_metrics": {
+                "low": {"recall": 0.45},
+                "neutral": {"recall": 0.42},
+                "high": {"recall": 0.85},
+            },
+        }
+        champion_metrics = {"test_macro_f1": float("nan")}
+        passed, reasons = gate.evaluate(
+            cv_metrics,
+            test_metrics,
+            champion_metrics=champion_metrics,
+            is_bootstrap=False,
+        )
+        assert passed is False
+        assert any(
+            "Champion Macro F1 is missing, NaN, or non-finite." in r for r in reasons
+        )
+
+
+class TestNLPModelRegistrySecurity:
+    """Verify registry methods prevent path traversal attacks."""
+
+    def test_promote_challenger_rejects_path_traversal(self, temp_nlp_registry_dir):
+        registry = NLPModelRegistry(base_dir=temp_nlp_registry_dir)
+        with pytest.raises(
+            ValueError, match="Path traversal attempt in promote_challenger"
+        ):
+            registry.promote_challenger(
+                "../../outside_file.skops",
+                {"model_name": "test"},
+                new_version="1.0.0",
+                auto_smoke_test=False,
+            )
+
+    def test_rollback_rejects_path_traversal_artifact(self, temp_nlp_registry_dir):
+        registry = NLPModelRegistry(base_dir=temp_nlp_registry_dir)
+        manifest = registry.get_manifest()
+        manifest["previous_champion"] = {
+            "version": "0.9.0",
+            "model_name": "test",
+            "archived_artifact_path": "../../evil_model.skops",
+            "archived_metadata_path": None,
+        }
+        registry._save_manifest(manifest)
+        with pytest.raises(ValueError, match="Path traversal attempt in rollback"):
+            registry.rollback(reason="Test traversal")
+
+    def test_certifier_rejects_non_dict_report(self):
+        certifier = NLPDriftCertifier()
+        passed, reason = certifier.certify("not_a_dict")  # type: ignore
+        assert passed is False
+        assert "Invalid monitoring report structure" in reason
+
+    def test_resolve_report_rejects_path_traversal(self):
+        orchestrator = NLPRetrainingOrchestrator()
+        report = orchestrator._resolve_report(report_id="../../sensitive_report")
+        assert report is None
