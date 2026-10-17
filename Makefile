@@ -22,7 +22,7 @@ eval:
 	cat ./Results/metrics.txt >> report.md
 	
 	echo '\n## Confusion Matrix Plot' >> report.md
-	echo '![Confusion Matrix](./Results/model_results.png)' >> report.md
+	cml asset publish ./Results/model_results.png --md --title="Confusion Matrix" >> report.md 2>/dev/null || echo '![Confusion Matrix](./Results/model_results.png)' >> report.md
 	
 	cml comment create report.md
 		

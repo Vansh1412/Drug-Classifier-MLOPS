@@ -40,19 +40,34 @@ def select_champion(
     Raises:
         NoValidChampionError: If no candidate satisfies the minimum quality thresholds.
     """
-    champ_cfg = cfg["champion"]
-    min_accuracy = champ_cfg["min_accuracy"]
-    min_macro_f1 = champ_cfg["min_macro_f1"]
-    min_recall = champ_cfg["min_recall"]
-    primary_metric = champ_cfg["primary_metric"]
+    champ_cfg = cfg.get("champion", {})
+    min_accuracy = champ_cfg.get("min_accuracy", 0.80)
+    min_macro_f1 = champ_cfg.get("min_macro_f1", 0.75)
+    min_recall = champ_cfg.get("min_recall", 0.70)
+    primary_metric = champ_cfg.get("primary_metric", "macro_f1")
+    selection_basis = champ_cfg.get("selection_basis", "cv")
 
     # Step 1: Apply quality gate
+    # When selection_basis == "cv" and CV metrics are present, gate on training CV metrics
+    # to eliminate test set selection leakage. Fall back to test metrics if CV is absent.
     passing = []
     failing = []
     for result in results:
-        acc_ok = result.get("accuracy", 0) >= min_accuracy
-        f1_ok = result.get("macro_f1", 0) >= min_macro_f1
-        recall_ok = result.get("macro_recall", 0) >= min_recall
+        use_cv = selection_basis == "cv" and "cv_macro_f1_mean" in result
+        acc = result.get(
+            "cv_accuracy_mean" if use_cv else "accuracy", result.get("accuracy", 0)
+        )
+        f1 = result.get(
+            "cv_macro_f1_mean" if use_cv else "macro_f1", result.get("macro_f1", 0)
+        )
+        recall = result.get(
+            "cv_macro_recall_mean" if use_cv else "macro_recall",
+            result.get("macro_recall", 0),
+        )
+
+        acc_ok = acc >= min_accuracy
+        f1_ok = f1 >= min_macro_f1
+        recall_ok = recall >= min_recall
         if acc_ok and f1_ok and recall_ok:
             passing.append(result)
         else:
@@ -73,7 +88,18 @@ def select_champion(
         )
 
     # Step 2: Rank by primary metric (descending)
-    ranked = sorted(passing, key=lambda r: r.get(primary_metric, 0), reverse=True)
+    def rank_metric(r: dict[str, Any]) -> float:
+        if selection_basis == "cv":
+            cv_key = (
+                f"cv_{primary_metric}_mean"
+                if not primary_metric.startswith("cv_")
+                else primary_metric
+            )
+            if cv_key in r:
+                return float(r[cv_key])
+        return float(r.get(primary_metric, 0))
+
+    ranked = sorted(passing, key=rank_metric, reverse=True)
     champion = ranked[0]
     challengers = ranked[1:]
 

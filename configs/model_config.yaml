@@ -99,7 +99,8 @@ models:
 # Champion Selection Policy
 # ---------------------------------------------------------------------------
 champion:
-  primary_metric: "macro_f1"          # Metric used to rank candidates
+  selection_basis: "cv"               # Use training cross-validation to select champion (leakage-safe)
+  primary_metric: "macro_f1"          # Metric used to rank candidates (evaluated via CV when selection_basis=cv)
   min_accuracy: 0.80
   min_macro_f1: 0.75
   min_recall: 0.70

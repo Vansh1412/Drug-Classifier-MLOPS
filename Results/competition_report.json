@@ -1,6 +1,7 @@
 {
-  "run_timestamp": "2026-09-17T17:13:12.248826+00:00",
+  "run_timestamp": "2026-10-17T18:07:39.818726+00:00",
   "champion": "xgboost",
+  "selection_basis": "cv",
   "challengers": [
     "extra_trees",
     "random_forest",
@@ -15,7 +16,7 @@
         "random_state": 125,
         "solver": "lbfgs"
       },
-      "training_time_seconds": 0.3866,
+      "training_time_seconds": 0.4241,
       "cv_accuracy_mean": 0.9357142857142857,
       "cv_accuracy_std": 0.01428571428571428,
       "cv_macro_f1_mean": 0.8406729536258949,
@@ -35,7 +36,7 @@
         "random_state": 125,
         "n_jobs": 1
       },
-      "training_time_seconds": 0.1689,
+      "training_time_seconds": 0.3055,
       "cv_accuracy_mean": 0.9357142857142857,
       "cv_accuracy_std": 0.01428571428571428,
       "cv_macro_f1_mean": 0.8452216619981325,
@@ -55,7 +56,7 @@
         "random_state": 125,
         "n_jobs": 1
       },
-      "training_time_seconds": 0.5487,
+      "training_time_seconds": 0.1774,
       "cv_accuracy_mean": 0.9714285714285715,
       "cv_accuracy_std": 0.026726124191242425,
       "cv_macro_f1_mean": 0.9489232492997199,
@@ -77,7 +78,7 @@
         "eval_metric": "mlogloss",
         "verbosity": 0
       },
-      "training_time_seconds": 0.0573,
+      "training_time_seconds": 0.0481,
       "cv_accuracy_mean": 0.9785714285714286,
       "cv_accuracy_std": 0.01749635530559412,
       "cv_macro_f1_mean": 0.9632851540616245,

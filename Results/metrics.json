@@ -1,8 +1,9 @@
 {
-  "run_timestamp": "2026-09-17T17:13:12.248826+00:00",
-  "total_runtime_seconds": 11.0397,
+  "run_timestamp": "2026-10-17T18:07:39.818726+00:00",
+  "total_runtime_seconds": 11.1944,
   "dataset": {
     "path": "Data/drug.csv",
+    "dataset_sha256": "9517b83a24a3d7d62eb3920752d409ea187e4a1ff8ae94b4fd946a8e7f63f3b2",
     "total_records": 200,
     "train_records": 140,
     "test_records": 60,
@@ -20,7 +21,7 @@
       "eval_metric": "mlogloss",
       "verbosity": 0
     },
-    "training_time_seconds": 0.0573,
+    "training_time_seconds": 0.0481,
     "cv_accuracy_mean": 0.9785714285714286,
     "cv_accuracy_std": 0.01749635530559412,
     "cv_macro_f1_mean": 0.9632851540616245,
@@ -32,11 +33,92 @@
     "weighted_f1": 1.0,
     "macro_precision": 1.0,
     "macro_recall": 1.0,
+    "artifact_path": "Model/drug_pipeline.skops",
+    "artifact_sha256": "d1a582fed592daa01eaff5b8eba7648a479eec9dfd10e41bea1c35f6758c0292",
+    "selection_basis": "cv",
     "quality_gate": {
       "primary_metric": "macro_f1",
       "min_accuracy": 0.8,
       "min_macro_f1": 0.75,
       "min_recall": 0.7
+    },
+    "per_class_metrics": {
+      "DrugY": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 27
+      },
+      "drugA": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 7
+      },
+      "drugB": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 5
+      },
+      "drugC": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 5
+      },
+      "drugX": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 16
+      }
+    },
+    "confusion_matrix": {
+      "classes": [
+        "DrugY",
+        "drugA",
+        "drugB",
+        "drugC",
+        "drugX"
+      ],
+      "matrix": [
+        [
+          27,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          7,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          5,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          5,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          16
+        ]
+      ]
     }
   },
   "all_candidates": [
@@ -47,7 +129,7 @@
         "random_state": 125,
         "solver": "lbfgs"
       },
-      "training_time_seconds": 0.3866,
+      "training_time_seconds": 0.4241,
       "cv_accuracy_mean": 0.9357142857142857,
       "cv_accuracy_std": 0.01428571428571428,
       "cv_macro_f1_mean": 0.8406729536258949,
@@ -67,7 +149,7 @@
         "random_state": 125,
         "n_jobs": 1
       },
-      "training_time_seconds": 0.1689,
+      "training_time_seconds": 0.3055,
       "cv_accuracy_mean": 0.9357142857142857,
       "cv_accuracy_std": 0.01428571428571428,
       "cv_macro_f1_mean": 0.8452216619981325,
@@ -87,7 +169,7 @@
         "random_state": 125,
         "n_jobs": 1
       },
-      "training_time_seconds": 0.5487,
+      "training_time_seconds": 0.1774,
       "cv_accuracy_mean": 0.9714285714285715,
       "cv_accuracy_std": 0.026726124191242425,
       "cv_macro_f1_mean": 0.9489232492997199,
@@ -109,7 +191,7 @@
         "eval_metric": "mlogloss",
         "verbosity": 0
       },
-      "training_time_seconds": 0.0573,
+      "training_time_seconds": 0.0481,
       "cv_accuracy_mean": 0.9785714285714286,
       "cv_accuracy_std": 0.01749635530559412,
       "cv_macro_f1_mean": 0.9632851540616245,
@@ -122,5 +204,11 @@
       "macro_precision": 1.0,
       "macro_recall": 1.0
     }
-  ]
+  ],
+  "evaluation_audit": {
+    "data_leakage_detected": false,
+    "train_test_overlap_records": 0,
+    "model_selection_basis": "cv",
+    "ground_truth_separability": "100% deterministic rule-based benchmark dataset"
+  }
 }

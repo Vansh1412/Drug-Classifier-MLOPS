@@ -138,7 +138,7 @@ jobs:
           echo "" >> report.md
           echo "## Confusion Matrix" >> report.md
           if [ -f "./Results/model_results.png" ]; then
-            echo "![Confusion Matrix](./Results/model_results.png)" >> report.md
+            cml asset publish ./Results/model_results.png --md --title="Confusion Matrix" >> report.md || echo "![Confusion Matrix](https://raw.githubusercontent.com/Vansh1412/Drug-Classifier-MLOPS/${{ github.sha }}/Results/model_results.png)" >> report.md
           fi
           
           # Render directly on GitHub Actions Job Summary tab
