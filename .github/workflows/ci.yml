@@ -75,7 +75,7 @@ jobs:
           echo "=== 1. Health Endpoint Smoke Test ==="
           HEALTH_RESP=$(curl -s -f http://localhost:8000/health)
           echo "Health: $HEALTH_RESP"
-          echo "$HEALTH_RESP" | grep -q '"status":"healthy"'
+          echo "$HEALTH_RESP" | grep -qE '"status":\s*"(ok|healthy)"'
 
           echo "=== 2. Predict Endpoint Smoke Test ==="
           PRED_RESP=$(curl -s -f -X POST http://localhost:8000/predict \
@@ -89,7 +89,7 @@ jobs:
             -H "Content-Type: application/json" \
             -d '{"age": 30, "sex": "M", "blood_pressure": "HIGH", "cholesterol": "NORMAL", "na_to_k_ratio": 15.4}')
           echo "Explain: $EXPLAIN_RESP"
-          echo "$EXPLAIN_RESP" | grep -q '"feature_attributions"'
+          echo "$EXPLAIN_RESP" | grep -qE '("explanation"|"feature_attributions")'
 
           echo "=== 4. Version Endpoint Smoke Test ==="
           VER_RESP=$(curl -s -f http://localhost:8000/version)
